@@ -1,0 +1,39 @@
+{
+  "project_info": {
+    "project_number": "852353724402",
+    "project_id": "likelion-def27",
+    "storage_bucket": "likelion-def27.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:852353724402:android:1cdd0321e1a57946e3c56b",
+        "android_client_info": {
+          "package_name": "com.example.likelion"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "852353724402-daa0lne1qv37qsbe4ea57e42da5bte3t.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyC-twRPuDiUyFDRT1qrD5dgt8L48dJvCvA"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "852353724402-daa0lne1qv37qsbe4ea57e42da5bte3t.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
