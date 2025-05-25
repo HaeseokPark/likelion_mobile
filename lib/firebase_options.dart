@@ -48,6 +48,7 @@ class DefaultFirebaseOptions {
     authDomain: 'likelion-def27.firebaseapp.com',
     storageBucket: 'likelion-def27.firebasestorage.app',
     measurementId: 'G-MYEF4XCSF0',
+
   );
 
   static const FirebaseOptions android = FirebaseOptions(
