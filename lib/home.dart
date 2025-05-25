@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:likelion/detail.dart';
 import 'package:likelion/model/products_repository.dart';
-import 'package:likelion/model/promise';
+import 'package:likelion/model/promise.dart';
 import 'package:likelion/widgets/global_bottombar.dart';
 import 'package:likelion/widgets/sort_filter.dart';
 import 'widgets/global_appbar.dart';
@@ -72,18 +72,22 @@ class InfoWidget extends StatelessWidget {
   }
 }
 
-
 class CategoryFilterBar extends StatefulWidget {
-  const CategoryFilterBar({super.key});
+  final void Function(Category) onCategorySelected; // 콜백 추가
+  final Category selectedCategory;
+
+  const CategoryFilterBar({
+    super.key,
+    required this.selectedCategory,
+    required this.onCategorySelected,
+  });
 
   @override
   State<CategoryFilterBar> createState() => _CategoryFilterBarState();
 }
 
 class _CategoryFilterBarState extends State<CategoryFilterBar> {
-  final List<String> categories = Category.values.map((c) => c.name).toList();
-  String selectedCategory = '전체';
-  String _currentSort = '최신순';
+  List<Category> categories = Category.values;
 
   @override
   Widget build(BuildContext context) {
@@ -98,34 +102,28 @@ class _CategoryFilterBarState extends State<CategoryFilterBar> {
             separatorBuilder: (_, __) => const SizedBox(width: 8),
             itemBuilder: (context, index) {
               final category = categories[index];
-              final isSelected = selectedCategory == category;
+              final isSelected = widget.selectedCategory == category;
 
               return ChoiceChip(
-                label: Text(category),
+                label: Text(category.name),
                 selected: isSelected,
                 selectedColor: Colors.deepPurple.shade100,
                 onSelected: (_) {
-                  setState(() {
-                    selectedCategory = category;
-                  });
+                  widget.onCategorySelected(category);
                 },
                 labelStyle: TextStyle(
                   color: isSelected ? Colors.deepPurple : Colors.black,
                 ),
-                side: BorderSide(
-                  color: Colors.grey.shade300,
-                ),
+                side: BorderSide(color: Colors.grey.shade300),
               );
             },
           ),
         ),
-
         const SizedBox(height: 16),
       ],
     );
   }
 }
-
 
 class HomePage extends StatefulWidget {
   const HomePage({super.key});
@@ -137,6 +135,7 @@ class HomePage extends StatefulWidget {
 class _HomePageState extends State<HomePage> {
   int numberOfCardsPerLine = 2;
   String _currentSort = '최신순';
+  Category selectedCategory = Category.all;
 
   List<Promise> _getSortedPromises() {
     List<Promise> promise = PromisesRepository.loadPromises();
@@ -150,14 +149,21 @@ class _HomePageState extends State<HomePage> {
     return promise;
   }
 
-  List<Card> _buildCards(BuildContext context) {
+  List<Card> _buildCards(BuildContext context, Category selectedCategory) {
     final sortedPromises = _getSortedPromises();
+
+    final filteredPromises =
+        selectedCategory == Category.all
+            ? sortedPromises
+            : sortedPromises
+                .where((promise) => promise.category == selectedCategory)
+                .toList();
 
     if (sortedPromises.isEmpty) {
       return const <Card>[];
     }
 
-    return sortedPromises.map((promise) {
+    return filteredPromises.map((promise) {
       return Card(
         child: SizedBox(
           width: double.infinity,
@@ -179,6 +185,7 @@ class _HomePageState extends State<HomePage> {
       appBar: GlobalAppBar(title: 'DO\'ST'),
       body: Column(
         children: [
+          SizedBox(height: 20),
           SortFilter(
             currentSort: _currentSort,
             onSortChanged: (sortType) {
@@ -187,13 +194,21 @@ class _HomePageState extends State<HomePage> {
               });
             },
           ),
-          const CategoryFilterBar(), // 필요한 경우 상태 연결
+          SizedBox(height: 10),
+          CategoryFilterBar(
+            selectedCategory: selectedCategory,
+            onCategorySelected: (category) {
+              setState(() {
+                selectedCategory = category;
+              });
+            },
+          ),
           Expanded(
             child: GridView.count(
               crossAxisCount: numberOfCardsPerLine,
               padding: const EdgeInsets.all(16.0),
               childAspectRatio: 8.0 / 9.0,
-              children: _buildCards(context),
+              children: _buildCards(context, selectedCategory),
             ),
           ),
         ],

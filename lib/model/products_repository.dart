@@ -1,4 +1,4 @@
-import 'package:likelion/model/promise';
+import 'package:likelion/model/promise.dart';
 
 class PromisesRepository {
   static List<Promise> loadPromises() {

@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
-import 'package:likelion/model/promise';
+import 'package:likelion/model/promise.dart';
+
 import 'package:likelion/widgets/global_bottombar.dart';
 import 'widgets/global_appbar.dart';
 
