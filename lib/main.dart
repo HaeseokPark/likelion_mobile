@@ -1,14 +1,14 @@
+import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/material.dart';
 import 'package:firebase_core/firebase_core.dart';
+import 'package:likelion/home.dart';
 import 'firebase_options.dart';
 import 'login.dart';
 import 'group_detail_page.dart'; // 예를 들어 메인 화면을 GroupDetailPage로 설정한다고 가정
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
-  await Firebase.initializeApp(
-    options: DefaultFirebaseOptions.currentPlatform,
-  );
+  await Firebase.initializeApp(options: DefaultFirebaseOptions.currentPlatform);
   runApp(const MyApp());
 }
 
@@ -23,6 +23,9 @@ class MyApp extends StatelessWidget {
       routes: {
         '/': (context) => const LoginPage(),
         '/main': (context) => const GroupDetailPage(), // 메인 라우트 등록
+        '/login': (BuildContext context) => const LoginPage(),
+        '/logout': (BuildContext context) => const LoginPage(),
+        '/home': (BuildContext context) => HomePage(), 
       },
     );
   }
