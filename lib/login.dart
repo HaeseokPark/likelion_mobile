@@ -28,7 +28,7 @@ class LoginPage extends StatelessWidget {
         await saveUserInfo(user); // Firestore에 사용자 정보 저장
       }
 
-      Navigator.pushReplacementNamed(context, '/main');
+      Navigator.pushReplacementNamed(context, '/home');
     } catch (e) {
       _showError(context, 'Google 로그인 실패: $e');
     }
