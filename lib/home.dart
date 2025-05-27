@@ -1,129 +1,8 @@
 import 'package:flutter/material.dart';
-import 'package:likelion/detail.dart';
-import 'package:likelion/model/products_repository.dart';
-import 'package:likelion/model/promise.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:likelion/widgets/global_appbar.dart';
 import 'package:likelion/widgets/global_bottombar.dart';
 import 'package:likelion/widgets/sort_filter.dart';
-import 'widgets/global_appbar.dart';
-
-class ImageWidget extends StatelessWidget {
-  const ImageWidget({super.key, required this.promise});
-
-  final Promise promise;
-
-  @override
-  Widget build(BuildContext context) {
-    return AspectRatio(
-      aspectRatio: 18 / 11,
-      child: Image.asset(promise.imagePath, fit: BoxFit.contain),
-    );
-  }
-}
-
-class InfoWidget extends StatelessWidget {
-  const InfoWidget({super.key, required this.promise});
-
-  final Promise promise;
-
-  @override
-  Widget build(BuildContext context) {
-    return Row(
-      children: [
-        Flexible(
-          fit: FlexFit.loose,
-          child: Padding(
-            padding: const EdgeInsets.fromLTRB(16.0, 12.0, 16.0, 8.0),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: <Widget>[
-                Text(
-                  promise.title,
-                  style: Theme.of(context).textTheme.titleLarge,
-                  maxLines: 1,
-                ),
-                const SizedBox(height: 8.0),
-                Text(
-                  promise.time,
-                  style: Theme.of(context).textTheme.titleSmall,
-                ),
-              ],
-            ),
-          ),
-        ),
-        Column(
-          mainAxisAlignment: MainAxisAlignment.end,
-          children: [
-            TextButton(
-              style: TextButton.styleFrom(foregroundColor: Colors.blue),
-              onPressed: () {
-                Navigator.push(
-                  context,
-                  MaterialPageRoute(
-                    builder: (context) => DetailPage(promise: promise),
-                  ),
-                );
-              },
-              child: const Text("more"),
-            ),
-          ],
-        ),
-      ],
-    );
-  }
-}
-
-class CategoryFilterBar extends StatefulWidget {
-  final void Function(Category) onCategorySelected; // 콜백 추가
-  final Category selectedCategory;
-
-  const CategoryFilterBar({
-    super.key,
-    required this.selectedCategory,
-    required this.onCategorySelected,
-  });
-
-  @override
-  State<CategoryFilterBar> createState() => _CategoryFilterBarState();
-}
-
-class _CategoryFilterBarState extends State<CategoryFilterBar> {
-  List<Category> categories = Category.values;
-
-  @override
-  Widget build(BuildContext context) {
-    return Column(
-      children: [
-        SizedBox(
-          height: 50,
-          child: ListView.separated(
-            scrollDirection: Axis.horizontal,
-            padding: const EdgeInsets.symmetric(horizontal: 12),
-            itemCount: categories.length,
-            separatorBuilder: (_, __) => const SizedBox(width: 8),
-            itemBuilder: (context, index) {
-              final category = categories[index];
-              final isSelected = widget.selectedCategory == category;
-
-              return ChoiceChip(
-                label: Text(category.name),
-                selected: isSelected,
-                selectedColor: Colors.deepPurple.shade100,
-                onSelected: (_) {
-                  widget.onCategorySelected(category);
-                },
-                labelStyle: TextStyle(
-                  color: isSelected ? Colors.deepPurple : Colors.black,
-                ),
-                side: BorderSide(color: Colors.grey.shade300),
-              );
-            },
-          ),
-        ),
-        const SizedBox(height: 16),
-      ],
-    );
-  }
-}
 
 class HomePage extends StatefulWidget {
   const HomePage({super.key});
@@ -135,48 +14,18 @@ class HomePage extends StatefulWidget {
 class _HomePageState extends State<HomePage> {
   int numberOfCardsPerLine = 2;
   String _currentSort = '최신순';
-  Category selectedCategory = Category.all;
 
-  List<Promise> _getSortedPromises() {
-    List<Promise> promise = PromisesRepository.loadPromises();
+  Stream<QuerySnapshot> _getMeetingsStream() {
+    Query query = FirebaseFirestore.instance.collection('meetings');
 
+    // 정렬 조건
     if (_currentSort == '최신순') {
-      promise.sort((a, b) => b.time.compareTo(a.time)); // 최신 먼저
+      query = query.orderBy('created_at', descending: true);
     } else {
-      promise.sort((a, b) => a.time.compareTo(b.time)); // 오래된 먼저
+      query = query.orderBy('created_at', descending: false);
     }
 
-    return promise;
-  }
-
-  List<Card> _buildCards(BuildContext context, Category selectedCategory) {
-    final sortedPromises = _getSortedPromises();
-
-    final filteredPromises =
-        selectedCategory == Category.all
-            ? sortedPromises
-            : sortedPromises
-                .where((promise) => promise.category == selectedCategory)
-                .toList();
-
-    if (sortedPromises.isEmpty) {
-      return const <Card>[];
-    }
-
-    return filteredPromises.map((promise) {
-      return Card(
-        child: SizedBox(
-          width: double.infinity,
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Flexible(child: ImageWidget(promise: promise)),
-              Flexible(child: InfoWidget(promise: promise)),
-            ],
-          ),
-        ),
-      );
-    }).toList();
+    return query.snapshots();
   }
 
   @override
@@ -194,30 +43,69 @@ class _HomePageState extends State<HomePage> {
               });
             },
           ),
-          SizedBox(height: 10),
-          CategoryFilterBar(
-            selectedCategory: selectedCategory,
-            onCategorySelected: (category) {
-              setState(() {
-                selectedCategory = category;
-              });
-            },
-          ),
           Expanded(
-            child: GridView.count(
-              crossAxisCount: numberOfCardsPerLine,
-              padding: const EdgeInsets.all(16.0),
-              childAspectRatio: 8.0 / 9.0,
-              children: _buildCards(context, selectedCategory),
+            child: StreamBuilder<QuerySnapshot>(
+              stream: _getMeetingsStream(),
+              builder: (context, snapshot) {
+                if (snapshot.hasError) {
+                  return Center(child: Text('에러: ${snapshot.error}'));
+                }
+                if (snapshot.connectionState == ConnectionState.waiting) {
+                  return Center(child: CircularProgressIndicator());
+                }
+
+                final docs = snapshot.data!.docs;
+
+                if (docs.isEmpty) {
+                  return Center(child: Text('등록된 모임이 없습니다.'));
+                }
+
+                return GridView.count(
+                  crossAxisCount: numberOfCardsPerLine,
+                  padding: const EdgeInsets.all(16.0),
+                  childAspectRatio: 8.0 / 9.0,
+                  children: docs.map((doc) {
+                    var data = doc.data() as Map<String, dynamic>;
+                    String title = data['title'] ?? '제목 없음';
+                    String date = data['date'] ?? '';
+                    String startTime = data['start_time'] ?? '';
+                    String content = data['content'] ?? '';
+                    String invitedFriend = data['invited_friend'] ?? '';
+
+                    return Card(
+                      child: InkWell(
+                        onTap: () {
+                          // 상세 페이지로 이동 추가 가능
+                        },
+                        child: Padding(
+                          padding: const EdgeInsets.all(8.0),
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Text(title, style: Theme.of(context).textTheme.titleMedium),
+                              SizedBox(height: 4),
+                              Text('$date $startTime', style: Theme.of(context).textTheme.bodySmall),
+                              SizedBox(height: 4),
+                              Text(content, maxLines: 2, overflow: TextOverflow.ellipsis),
+                              SizedBox(height: 4),
+                              Text('초대: $invitedFriend', style: Theme.of(context).textTheme.bodySmall),
+                            ],
+                          ),
+                        ),
+                      ),
+                    );
+                  }).toList(),
+                );
+              },
             ),
           ),
         ],
       ),
       floatingActionButton: FloatingActionButton(
         onPressed: () {
-          // 수정 기능
+          Navigator.pushNamed(context, '/register');
         },
-        child: const Icon(Icons.edit),
+        child: const Icon(Icons.add),
       ),
       bottomNavigationBar: GlobalBottomBar(),
     );
