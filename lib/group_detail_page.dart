@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_swipe_button/flutter_swipe_button.dart';
+
 
 class GroupDetailPage extends StatefulWidget {
   const GroupDetailPage({super.key});
@@ -173,6 +175,31 @@ class _GroupDetailPageState extends State<GroupDetailPage> {
                     child: Text('등록하기'),
                   ),
                 ),
+                
+//스와이프버튼
+
+                SwipeButton.expand(
+                  thumb: Align(
+                    alignment: Alignment.centerRight,
+                    child: Icon(
+                      IconData(0xe5f2, fontFamily: 'MaterialIcons'),
+                      size: 53,
+                    ),
+                  ),
+                  activeThumbColor: Colors.white,
+                  activeTrackColor: Colors.grey.shade300,
+                  onSwipe: () { 
+                    //저장 후 페이지 바뀌는 로직 추가
+                  },
+                  child: Text(
+                    "참여하기",
+                    style: TextStyle(
+                      color: Colors.black,
+                    ),
+                  ),
+                ),
+
+
               ],
             ),
           ),

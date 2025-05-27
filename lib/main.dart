@@ -3,6 +3,8 @@ import 'package:firebase_core/firebase_core.dart';
 import 'firebase_options.dart';
 import 'login.dart';
 import 'group_detail_page.dart'; // 예를 들어 메인 화면을 GroupDetailPage로 설정한다고 가정
+import 'alert.dart';
+import 'mypage.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -22,7 +24,7 @@ class MyApp extends StatelessWidget {
       initialRoute: '/', // 초기 라우트는 로그인
       routes: {
         '/': (context) => const LoginPage(),
-        '/main': (context) => const GroupDetailPage(), // 메인 라우트 등록
+        '/main': (context) => const ProfilePage(), // 메인 라우트 등록
       },
     );
   }

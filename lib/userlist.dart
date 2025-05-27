@@ -51,7 +51,6 @@ class _UserListPageState extends State<UserListPage> {
             _highlightedUid = doc.id;
           });
 
-          // 하이라이트 잠깐 유지
           Future.delayed(const Duration(seconds: 2), () {
             setState(() {
               _highlightedUid = null;
@@ -61,7 +60,6 @@ class _UserListPageState extends State<UserListPage> {
         return;
       }
     }
-    // 일치하는 유저 없을 때
     ScaffoldMessenger.of(context).showSnackBar(
       const SnackBar(content: Text('해당 이름의 유저를 찾을 수 없습니다.')),
     );
