@@ -1,16 +1,7 @@
+enum Category { all, study, walking, meal, game, sports, workout }
 
-enum Category {
-  all,
-  study,
-  walking,
-  meal,
-  game,
-  sports,
-  workout,
-}
-
-class Promise {
-  const Promise({
+class Meeting {
+  const Meeting({
     required this.category,
     required this.id,
     required this.isRecruiting,
