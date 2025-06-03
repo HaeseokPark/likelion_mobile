@@ -13,8 +13,7 @@ class _UserListPageState extends State<UserListPage> {
   final ScrollController _scrollController = ScrollController();
 
   List<DocumentSnapshot> _users = [];
-  Map<String, GlobalKey> _itemKeys = {};
-  String? _highlightedUid;
+  Map<String, bool> _selectedUsers = {};
 
   @override
   void initState() {
@@ -30,45 +29,44 @@ class _UserListPageState extends State<UserListPage> {
 
     setState(() {
       _users = snapshot.docs;
-      _itemKeys = {
-        for (var doc in _users) doc.id: GlobalKey(),
-      };
-    });
-  }
-
-  void _scrollToUser(String name) {
-    for (final doc in _users) {
-      final data = doc.data() as Map<String, dynamic>;
-      if ((data['displayName'] as String?)?.toLowerCase() == name.toLowerCase()) {
-        final key = _itemKeys[doc.id];
-        if (key != null) {
-          Scrollable.ensureVisible(
-            key.currentContext!,
-            duration: const Duration(milliseconds: 300),
-            curve: Curves.easeInOut,
-          );
-          setState(() {
-            _highlightedUid = doc.id;
-          });
-
-          Future.delayed(const Duration(seconds: 2), () {
-            setState(() {
-              _highlightedUid = null;
-            });
-          });
-        }
-        return;
+      for (var doc in _users) {
+        _selectedUsers[doc.id] = false;
       }
-    }
-    ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(content: Text('해당 이름의 유저를 찾을 수 없습니다.')),
-    );
+    });
   }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: const Text('유저 목록')),
+      appBar: AppBar(
+        title: const Text('유저 목록'),
+        actions: [
+IconButton(
+  icon: const Icon(Icons.check),
+  onPressed: () {
+    // 선택된 유저를 Map으로 변환 (필요한 필드만 추출)
+    final selected = _users
+        .where((doc) => _selectedUsers[doc.id] == true)
+        .map((doc) {
+          final data = doc.data() as Map<String, dynamic>;
+          return {
+            'uid': doc.id,
+            'displayName': data['displayName'] ?? '이름 없음',
+          };
+        })
+        .toList();
+    if (selected.isNotEmpty) {
+      Navigator.pop(context, selected); // 안전하게 반환
+    } else {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('친구를 선택하세요.')),
+      );
+    }
+  },
+),
+
+        ],
+      ),
       body: Column(
         children: [
           Padding(
@@ -79,15 +77,11 @@ class _UserListPageState extends State<UserListPage> {
                 labelText: '이름으로 검색',
                 suffixIcon: IconButton(
                   icon: const Icon(Icons.search),
-                  onPressed: () {
-                    _scrollToUser(_searchController.text.trim());
-                  },
+                  onPressed: () => setState(() {}),
                 ),
                 border: const OutlineInputBorder(),
               ),
-              onSubmitted: (value) {
-                _scrollToUser(value.trim());
-              },
+              onChanged: (value) => setState(() {}),
             ),
           ),
           Expanded(
@@ -97,20 +91,26 @@ class _UserListPageState extends State<UserListPage> {
               itemBuilder: (context, index) {
                 final doc = _users[index];
                 final data = doc.data() as Map<String, dynamic>;
-                final isHighlighted = _highlightedUid == doc.id;
+                final displayName = data['displayName'] ?? '이름 없음';
+                final email = data['email'] ?? '';
+                final searchFilter = _searchController.text.trim().toLowerCase();
 
-                return Container(
-                  key: _itemKeys[doc.id],
-                  color: isHighlighted ? Colors.yellow[100] : null,
-                  child: ListTile(
-                    leading: data['photoURL'] != null
-                        ? CircleAvatar(
-                            backgroundImage: NetworkImage(data['photoURL']),
-                          )
-                        : const CircleAvatar(child: Icon(Icons.person)),
-                    title: Text(data['displayName'] ?? '이름 없음'),
-                    subtitle: Text(data['email'] ?? ''),
-                  ),
+                if (searchFilter.isNotEmpty && !displayName.toLowerCase().contains(searchFilter)) {
+                  return const SizedBox.shrink();
+                }
+
+                return CheckboxListTile(
+                  value: _selectedUsers[doc.id],
+                  onChanged: (bool? value) {
+                    setState(() {
+                      _selectedUsers[doc.id] = value ?? false;
+                    });
+                  },
+                  title: Text(displayName),
+                  subtitle: Text(email),
+                  secondary: data['photoURL'] != null
+                      ? CircleAvatar(backgroundImage: NetworkImage(data['photoURL']))
+                      : const CircleAvatar(child: Icon(Icons.person)),
                 );
               },
             ),
