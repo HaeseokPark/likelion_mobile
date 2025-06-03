@@ -93,7 +93,7 @@ class _RegisterMeetingPageState extends State<RegisterMeetingPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: Text('모임 등록')),
+      appBar: AppBar(title: Text('모임 등록'),backgroundColor: Colors.blue,),
       body: _isLoading
           ? const Center(child: CircularProgressIndicator())
           : Padding(

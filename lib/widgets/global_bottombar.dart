@@ -4,12 +4,14 @@ import 'package:likelion/calendar.dart';
 
 
 class GlobalBottomBar extends StatelessWidget {
-  const GlobalBottomBar({super.key});
+  final int num;
+  
+  const GlobalBottomBar({super.key,required this.num});
 
   @override
   Widget build(BuildContext context) {
     return BottomNavigationBar(
-      currentIndex: 0,
+      currentIndex: num,
       onTap: (index) {
         if (index == 1) {
           // 메인
