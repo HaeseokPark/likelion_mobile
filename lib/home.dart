@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:likelion/detail.dart';
+import 'package:likelion/widgets/date_formatter.dart';
 import 'package:likelion/widgets/global_appbar.dart';
 import 'package:likelion/widgets/global_bottombar.dart';
 import 'package:likelion/widgets/sort_filter.dart';
@@ -71,6 +72,7 @@ class _HomePageState extends State<HomePage> {
                         String title = data['title'] ?? '제목 없음';
                         String date = data['date'] ?? '';
                         String startTime = data['start_time'] ?? '';
+                        String endTime = data['end_time'] ?? '';
                         String content = data['content'] ?? '';
                         String invitedFriend = data['invited_friend'] ?? '';
 
@@ -80,7 +82,8 @@ class _HomePageState extends State<HomePage> {
                               Navigator.push(
                                 context,
                                 MaterialPageRoute(
-                                  builder: (context) => DetailPage(),
+                                  builder: (context) => DetailPage(docId: doc.id),
+                                  
                                 ),
                               );
                             },
@@ -96,7 +99,7 @@ class _HomePageState extends State<HomePage> {
                                   ),
                                   SizedBox(height: 4),
                                   Text(
-                                    '$date $startTime',
+                                    formatMeetingDate(date, startTime, endTime),
                                     style:
                                         Theme.of(context).textTheme.bodySmall,
                                   ),

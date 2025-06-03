@@ -22,7 +22,7 @@ class MyApp extends StatelessWidget {
   Widget build(BuildContext context) {
     return MaterialApp(
       debugShowCheckedModeBanner: false,
-      initialRoute: '/home', // 초기 라우트는 로그인
+      initialRoute: '/login', // 초기 라우트는 로그인
       routes: {
         '/': (context) => const LoginPage(),
         '/login': (BuildContext context) => const LoginPage(),
@@ -30,7 +30,6 @@ class MyApp extends StatelessWidget {
         '/home': (BuildContext context) => HomePage(), 
         '/register': (BuildContext context) => RegisterMeetingPage(), 
         '/user': (BuildContext context) => UserListPage(),
-        '/detail': (BuildContext context) => DetailPage(),
         '/calendar' : (BuildContext context) => CalendarPage(),
       },
     );

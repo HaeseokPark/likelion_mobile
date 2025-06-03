@@ -26,6 +26,7 @@ dependencies:
   google_sign_in: ^6.0.0
   image_picker: ^1.1.2
   firebase_storage: 12.4.5
+  intl: ^0.19.0
   flutter_swipe_button: ^2.1.1+1
   table_calendar: ^3.1.3
 
