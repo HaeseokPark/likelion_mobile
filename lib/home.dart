@@ -64,37 +64,46 @@ class _HomePageState extends State<HomePage> {
                   crossAxisCount: numberOfCardsPerLine,
                   padding: const EdgeInsets.all(16.0),
                   childAspectRatio: 8.0 / 9.0,
-                  children: docs.map((doc) {
-                    var data = doc.data() as Map<String, dynamic>;
-                    String title = data['title'] ?? '제목 없음';
-                    String date = data['date'] ?? '';
-                    String startTime = data['start_time'] ?? '';
-                    String content = data['content'] ?? '';
-                    String invitedFriend = data['invited_friend'] ?? '';
+                  // GridView 내 docs.map 부분
+children: docs.map((doc) {
+  var data = doc.data() as Map<String, dynamic>;
+  String title = data['title'] ?? '제목 없음';
+  String date = data['date'] ?? '';
+  String startTime = data['start_time'] ?? '';
+  String content = data['content'] ?? '';
+  String invitedFriend = data['invited_friend'] ?? '';
+  String imageUrl = data['imageUrl'] ?? '';
 
-                    return Card(
-                      child: InkWell(
-                        onTap: () {
-                          // 상세 페이지로 이동 추가 가능
-                        },
-                        child: Padding(
-                          padding: const EdgeInsets.all(8.0),
-                          child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              Text(title, style: Theme.of(context).textTheme.titleMedium),
-                              SizedBox(height: 4),
-                              Text('$date $startTime', style: Theme.of(context).textTheme.bodySmall),
-                              SizedBox(height: 4),
-                              Text(content, maxLines: 2, overflow: TextOverflow.ellipsis),
-                              SizedBox(height: 4),
-                              Text('초대: $invitedFriend', style: Theme.of(context).textTheme.bodySmall),
-                            ],
-                          ),
-                        ),
-                      ),
-                    );
-                  }).toList(),
+  return Card(
+    child: InkWell(
+      onTap: () {
+        // 상세 페이지 이동 구현 가능
+      },
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          imageUrl.isNotEmpty
+              ? Image.network(imageUrl, height: 100, width: double.infinity, fit: BoxFit.cover)
+              : Container(height: 100, color: Colors.grey[300], child: Center(child: Text('이미지 없음'))),
+          Padding(
+            padding: const EdgeInsets.all(8.0),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(title, style: Theme.of(context).textTheme.titleMedium),
+                SizedBox(height: 4),
+                Text('$date $startTime', style: Theme.of(context).textTheme.bodySmall),
+                Text(content, maxLines: 2, overflow: TextOverflow.ellipsis),
+                Text('초대: $invitedFriend', style: Theme.of(context).textTheme.bodySmall),
+              ],
+            ),
+          ),
+        ],
+      ),
+    ),
+  );
+}).toList(),
+
                 );
               },
             ),

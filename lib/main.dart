@@ -6,6 +6,7 @@ import 'package:likelion/userlist.dart';
 import 'firebase_options.dart';
 import 'login.dart'; 
 import 'register_meeting_page.dart';
+
 // 예를 들어 메인 화면을 GroupDetailPage로 설정한다고 가정
 
 void main() async {
