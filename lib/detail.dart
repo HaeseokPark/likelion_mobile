@@ -1,126 +1,162 @@
 import 'package:flutter/material.dart';
+import 'package:likelion/widgets/date_formatter.dart';
 import 'package:likelion/widgets/global_appbar.dart';
 import 'package:likelion/widgets/global_bottombar.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 
 class DetailPage extends StatelessWidget {
-  const DetailPage({super.key});
+  const DetailPage({super.key, required this.docId});
+
+  final String docId;
 
   @override
   Widget build(BuildContext context) {
+    final docRef = FirebaseFirestore.instance.collection('meetings').doc(docId);
+
     return Scaffold(
       backgroundColor: const Color(0xFFF8F1F8),
       appBar: GlobalAppBar(title: 'DO\'ST'),
-      body: ListView(
-        padding: const EdgeInsets.all(20),
-        children: [
-          Row(
-            crossAxisAlignment: CrossAxisAlignment.start,
+      body: FutureBuilder<DocumentSnapshot>(
+        future: docRef.get(),
+        builder: (context, snapshot) {
+          if (snapshot.connectionState == ConnectionState.waiting) {
+            return Center(child: CircularProgressIndicator());
+          }
+          if (!snapshot.hasData || !snapshot.data!.exists) {
+            return Center(child: Text('해당 문서를 찾을 수 없습니다.'));
+          }
+
+          final data = snapshot.data!.data() as Map<String, dynamic>;
+
+          final title = data['title'] ?? '제목 없음';
+          final date = data['date'] ?? '';
+          final startTime = data['start_time'] ?? '';
+          final endTime = data['end_time'] ?? '';
+          final content = data['content'] ?? '';
+          final imageUrl = data['image_url'] ?? '';
+
+          return ListView(
+            padding: const EdgeInsets.all(20),
             children: [
-              // 파이어 베이스에서 불러오기
-              Flexible(child: Image.asset('assets/DOST-logo.png')),
-              const SizedBox(width: 20),
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    const SizedBox(height: 25),
-                    const Text(
-                      // 파이어 베이스에서 불러오기
-                      '축구할 사람',
-                      style: TextStyle(
-                        fontSize: 20,
-                        fontWeight: FontWeight.bold,
-                      ),
-                    ),
-                    const SizedBox(height: 4),
-                    const Text(
-                      // 파이어 베이스에서 불러오기
-                      '25/07/11 [19:00-21:00]',
-                      style: TextStyle(color: Colors.grey),
-                    ),
-                    const SizedBox(height: 10),
-                    ElevatedButton(
-                      onPressed: () {},
-                      style: ElevatedButton.styleFrom(
-                        backgroundColor: Colors.blue,
-                        textStyle: TextStyle(color: Colors.white),
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(20),
+              Row(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  // 파이어 베이스에서 불러오기
+                  Flexible(child: Image.asset('assets/DOST-logo.png')),
+                  const SizedBox(width: 20),
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        const SizedBox(height: 25),
+                        Text(
+                          // 파이어 베이스에서 불러오기
+                          title,
+                          style: TextStyle(
+                            fontSize: 20,
+                            fontWeight: FontWeight.bold,
+                          ),
                         ),
-                      ),
-                      child: const Text('참여하기'),
+                        const SizedBox(height: 4),
+                        const Text(
+                          // 파이어 베이스에서 불러오기
+                          '25/07/11 [19:00-21:00]',
+                          style: TextStyle(color: Colors.grey),
+                        ),
+                        const SizedBox(height: 10),
+                        ElevatedButton(
+                          onPressed: () {},
+                          style: ElevatedButton.styleFrom(
+                            backgroundColor: Colors.blue,
+                            textStyle: TextStyle(color: Colors.white),
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(20),
+                            ),
+                          ),
+                          child: const Text('참여하기'),
+                        ),
+                      ],
                     ),
-                  ],
-                ),
+                  ),
+                ],
               ),
-            ],
-          ),
-          const SizedBox(height: 30),
-          const Text(
-            '설명',
-            style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
-          ),
-          const SizedBox(height: 10),
-          // 파이어 베이스에서 불러오기
-          const Text('• 일시\n  7월 11일 19:00 ~ 22:00 (금)'),
-          const SizedBox(height: 8),
-          // 파이어 베이스에서 불러오기
-          const Text('• 장소\n  [히딩크 드림필드]'),
-          const SizedBox(height: 8),
-          // 파이어 베이스에서 불러오기
-          const Text('• 모집 인원\n  10명'),
-          const SizedBox(height: 8),
-          // 파이어 베이스에서 불러오기
-          const Text('• 조건\n  풋살화 있는 사람'),
-          const SizedBox(height: 30),
-          Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: [
-              const Text(
-                '참가자 명단',
+              SizedBox(height: 30),
+              Text(
+                '설명',
                 style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
               ),
-              IconButton(
-                icon: const Icon(Icons.arrow_forward),
-                onPressed: () {
-                }, 
+              SizedBox(height: 10),
+
+              Text('• 일시\n  ${formatMeetingDate(date, startTime, endTime)}'),
+              SizedBox(height: 8),
+
+              Text('• 장소\n  ${data['location'] ?? '[장소 정보 없음]'}'),
+              SizedBox(height: 8),
+
+              Text(data['capacity'] != null
+                ? '• 모집 인원\n  ${data['capacity']}명'
+                : '• 모집 인원\n  [미정]',
+              ),
+              SizedBox(height: 8),
+
+              Text('• 조건\n  ${data['condition'] ?? '[없음]'}'),
+              SizedBox(height: 30),
+              Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  const Text(
+                    '참가자 명단',
+                    style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+                  ),
+                  IconButton(
+                    icon: const Icon(Icons.arrow_forward),
+                    onPressed: () {},
+                  ),
+                ],
+              ),
+              const SizedBox(height: 10),
+              Row(
+                children: [
+                  StreamBuilder<QuerySnapshot>(
+                    stream:
+                        FirebaseFirestore.instance
+                            .collection('participants')
+                            .snapshots(),
+                    builder: (context, snapshot) { 
+                      if (snapshot.connectionState == ConnectionState.waiting) {
+                        return const CircularProgressIndicator(); // 로딩 중이면 동그란 로딩 표시
+                      }
+                      if (!snapshot.hasData || snapshot.data!.docs.isEmpty) {
+                        return const Text('참가자가 없습니다.'); // 데이터 없을 때
+                      }
+
+                      final participants = snapshot.data!.docs; // 문서들 가져오기
+
+                      return SingleChildScrollView(
+                        scrollDirection: Axis.horizontal,
+                        child: Row(
+                          children:
+                              participants.map((doc) {
+                                final name = doc['name'] ?? '이름 없음';
+                                final imageUrl =
+                                    doc['imageUrl'] ?? ''; // 이미지 없으면 빈 문자열
+                                return Padding(
+                                  padding: const EdgeInsets.only(right: 10),
+                                  child: _participantCard(
+                                    name,
+                                    imageUrl,
+                                  ), // 이름과 이미지로 카드 생성
+                                );
+                              }).toList(),
+                        ),
+                      );
+                    },
+                  ),
+                ],
               ),
             ],
-          ),
-          const SizedBox(height: 10),
-          Row(
-            children: [
-              StreamBuilder<QuerySnapshot>(
-                stream: FirebaseFirestore.instance.collection('participants').snapshots(),
-                builder: (context, snapshot) {
-                  if (snapshot.connectionState == ConnectionState.waiting) {
-                    return const CircularProgressIndicator(); // 로딩 중이면 동그란 로딩 표시
-                  }
-                  if (!snapshot.hasData || snapshot.data!.docs.isEmpty) {
-                    return const Text('참가자가 없습니다.'); // 데이터 없을 때
-                  }
-
-                  final participants = snapshot.data!.docs; // 문서들 가져오기
-
-                  return SingleChildScrollView(
-                    scrollDirection: Axis.horizontal,
-                    child: Row(
-                      children: participants.map((doc) {
-                        final name = doc['name'] ?? '이름 없음';
-                        final imageUrl = doc['imageUrl'] ?? ''; // 이미지 없으면 빈 문자열
-                        return Padding(
-                          padding: const EdgeInsets.only(right: 10),
-                          child: _participantCard(name, imageUrl), // 이름과 이미지로 카드 생성
-                        );
-                      }).toList(),
-                    ),
-                  );
-                },
-              ),
-            ],
-          ),
-        ],
+          );
+        },
       ),
       bottomNavigationBar: GlobalBottomBar(),
     );
@@ -141,7 +177,8 @@ class DetailPage extends StatelessWidget {
             child: Image.network(
               imageUrl,
               fit: BoxFit.cover,
-              errorBuilder: (context, error, stackTrace) => const Icon(Icons.person),
+              errorBuilder:
+                  (context, error, stackTrace) => const Icon(Icons.person),
             ),
           ),
         ),
@@ -151,4 +188,3 @@ class DetailPage extends StatelessWidget {
     );
   }
 }
-
