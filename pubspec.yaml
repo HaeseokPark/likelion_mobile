@@ -8,7 +8,7 @@ publish_to: 'none' # Remove this line if you wish to publish to pub.dev
 version: 1.0.0+1
 
 environment:
-  sdk: ^3.7.2
+  sdk: ^3.7.0
 
 
 dependencies:
@@ -24,7 +24,7 @@ dependencies:
   provider: ^6.1.5
   firebase_ui_auth: ^1.16.1
   google_sign_in: ^6.0.0
-  image_picker: ^1.1.0
+  image_picker: ^1.1.2
   firebase_storage: 12.4.5
 
 dev_dependencies:
