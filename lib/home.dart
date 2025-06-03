@@ -80,7 +80,8 @@ class _HomePageState extends State<HomePage> {
                               Navigator.push(
                                 context,
                                 MaterialPageRoute(
-                                  builder: (context) => DetailPage(),
+                                  builder: (context) => DetailPage(docId: doc.id),
+                                  
                                 ),
                               );
                             },

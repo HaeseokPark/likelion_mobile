@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:likelion/home.dart';
 
 class GlobalBottomBar extends StatelessWidget implements PreferredSizeWidget {
   const GlobalBottomBar({super.key});
