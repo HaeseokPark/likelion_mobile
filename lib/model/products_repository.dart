@@ -1,9 +1,9 @@
-import 'package:likelion/model/promise.dart';
+import 'package:likelion/model/meeting.dart';
 
-class PromisesRepository {
-  static List<Promise> loadPromises() {
-    const allPromises = <Promise>[
-      Promise(
+class MeetingsRepository {
+  static List<Meeting> loadMeetings() {
+    const allMeetings = <Meeting>[
+      Meeting(
         id: 0,
         category: Category.study,
         isRecruiting: true,
@@ -12,7 +12,7 @@ class PromisesRepository {
         peopleCount: 5,
         imagePath: "assets/DOST-logo.png",
       ),
-      Promise(
+      Meeting(
         id: 1,
         category: Category.game,
         isRecruiting: true,
@@ -21,7 +21,7 @@ class PromisesRepository {
         peopleCount: 4,
         imagePath: "assets/DOST-logo.png",
       ),
-      Promise(
+      Meeting(
         id: 2,
         category: Category.meal,
         isRecruiting: false,
@@ -30,7 +30,7 @@ class PromisesRepository {
         peopleCount: 6,
         imagePath: "assets/DOST-logo.png",
       ),
-      Promise(
+      Meeting(
         id: 3,
         category: Category.sports,
         isRecruiting: true,
@@ -40,6 +40,6 @@ class PromisesRepository {
         imagePath: "assets/DOST-logo.png",
       ),
     ];
-    return allPromises.toList();
+    return allMeetings.toList();
   }
 }
