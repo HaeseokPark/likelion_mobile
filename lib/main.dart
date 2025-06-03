@@ -6,7 +6,8 @@ import 'package:likelion/userlist.dart';
 import 'firebase_options.dart';
 import 'login.dart'; 
 import 'register_meeting_page.dart';
-// 예를 들어 메인 화면을 GroupDetailPage로 설정한다고 가정
+
+import 'calendar.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -29,6 +30,7 @@ class MyApp extends StatelessWidget {
         '/home': (BuildContext context) => HomePage(), 
         '/register': (BuildContext context) => RegisterMeetingPage(), 
         '/user': (BuildContext context) => UserListPage(),
+        '/calendar' : (BuildContext context) => CalendarPage(),
       },
     );
   }
