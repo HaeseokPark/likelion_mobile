@@ -3,18 +3,12 @@ import 'package:likelion/widgets/date_formatter.dart';
 import 'package:likelion/widgets/global_appbar.dart';
 import 'package:likelion/widgets/global_bottombar.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
-<<<<<<< HEAD
-import 'package:flutter_swipe_button/flutter_swipe_button.dart';
-import 'package:shimmer/shimmer.dart';
-
-=======
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:firebase_storage/firebase_storage.dart';
 import 'package:flutter_swipe_button/flutter_swipe_button.dart';
 import 'package:shimmer/shimmer.dart';
 
 
->>>>>>> 76d3dfda9db0f2f720c7055a47146925ebe41ab9
 class DetailPage extends StatelessWidget {
   const DetailPage({super.key, required this.docId});
 
