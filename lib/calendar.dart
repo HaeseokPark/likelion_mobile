@@ -2,9 +2,9 @@ import 'package:flutter/material.dart';
 import 'package:table_calendar/table_calendar.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_core/firebase_core.dart';
+import 'detail.dart';
 import 'widgets/global_appbar.dart';
 import 'widgets/global_bottombar.dart';
-
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -33,7 +33,7 @@ class CalendarPage extends StatefulWidget {
 }
 
 class _CalendarPageState extends State<CalendarPage> {
-  final Map<DateTime, List<String>> _events = {};
+  final Map<DateTime, List<Map<String, dynamic>>> _events = {};
   DateTime _focusedDay = DateTime.now();
   DateTime? _selectedDay;
 
@@ -47,11 +47,11 @@ class _CalendarPageState extends State<CalendarPage> {
     try {
       final snapshot = await FirebaseFirestore.instance.collection('meetings').get();
 
-      final Map<DateTime, List<String>> loadedEvents = {};
+      final Map<DateTime, List<Map<String, dynamic>>> loadedEvents = {};
 
       for (var doc in snapshot.docs) {
         final data = doc.data();
-        final name = data['title'] ?? '제목 없음';
+        final title = data['title'] ?? '제목 없음';
         final dateString = data['date'];
 
         if (dateString is String) {
@@ -59,10 +59,15 @@ class _CalendarPageState extends State<CalendarPage> {
             final date = DateTime.parse(dateString);
             final eventDate = DateTime(date.year, date.month, date.day);
 
+            final event = {
+              'title': title,
+              'docId': doc.id,
+            };
+
             if (loadedEvents[eventDate] == null) {
-              loadedEvents[eventDate] = [name];
+              loadedEvents[eventDate] = [event];
             } else {
-              loadedEvents[eventDate]!.add(name);
+              loadedEvents[eventDate]!.add(event);
             }
           } catch (e) {
             print('날짜 파싱 오류: $e');
@@ -75,12 +80,13 @@ class _CalendarPageState extends State<CalendarPage> {
         _events.addAll(loadedEvents);
       });
     } catch (e) {
-      print('Error loading events: $e');
+      print('Firestore에서 이벤트 로딩 오류: $e');
     }
   }
 
-  List<String> _getEventsForDay(DateTime day) {
-    return _events[DateTime(day.year, day.month, day.day)] ?? [];
+  List<Map<String, dynamic>> _getEventsForDay(DateTime day) {
+    final key = DateTime(day.year, day.month, day.day);
+    return _events[key] ?? [];
   }
 
   @override
@@ -101,6 +107,7 @@ class _CalendarPageState extends State<CalendarPage> {
               });
             },
             eventLoader: _getEventsForDay,
+            headerStyle: const HeaderStyle(formatButtonVisible: false),
             calendarStyle: const CalendarStyle(
               markerDecoration: BoxDecoration(
                 color: Colors.red,
@@ -121,10 +128,8 @@ class _CalendarPageState extends State<CalendarPage> {
               },
             ),
           ),
-          const SizedBox(height: 8.0),
-          Expanded(
-            child: _buildEventList(),
-          ),
+          const SizedBox(height: 8),
+          Expanded(child: _buildEventList()),
         ],
       ),
       bottomNavigationBar: GlobalBottomBar(selectedIndex: 2),
@@ -134,17 +139,15 @@ class _CalendarPageState extends State<CalendarPage> {
   Widget _buildMarkers(int count) {
     return Row(
       mainAxisAlignment: MainAxisAlignment.center,
-      children: List.generate(count, (index) =>
-        Container(
-          width: 6,
-          height: 6,
-          margin: const EdgeInsets.symmetric(horizontal: 0.5),
-          decoration: const BoxDecoration(
-            shape: BoxShape.circle,
-            color: Colors.red,
-          ),
-        )
-      ),
+      children: List.generate(count, (index) => Container(
+        width: 6,
+        height: 6,
+        margin: const EdgeInsets.symmetric(horizontal: 0.5),
+        decoration: const BoxDecoration(
+          shape: BoxShape.circle,
+          color: Colors.red,
+        ),
+      )),
     );
   }
 
@@ -153,12 +156,27 @@ class _CalendarPageState extends State<CalendarPage> {
     if (events.isEmpty) {
       return const Center(child: Text('일정이 없습니다.'));
     }
+
     return ListView.builder(
       itemCount: events.length,
-      itemBuilder: (context, index) => ListTile(
-        leading: const Icon(Icons.event),
-        title: Text(events[index]),
-      ),
+      itemBuilder: (context, index) {
+        final event = events[index];
+        final String title = event['title'] ?? '';
+        final String docId = event['docId'] ?? '';
+
+        return ListTile(
+          leading: const Icon(Icons.event),
+          title: Text(title),
+          onTap: () {
+            Navigator.push(
+              context,
+              MaterialPageRoute(
+                builder: (_) => DetailPage(docId: docId),
+              ),
+            );
+          },
+        );
+      },
     );
   }
 }
