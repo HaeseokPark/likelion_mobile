@@ -39,11 +39,20 @@ class _RegisterMeetingPageState extends State<RegisterMeetingPage> {
   }
 
   Future<String?> _uploadImage(File image) async {
+  try {
     String fileName = DateTime.now().millisecondsSinceEpoch.toString();
     Reference ref = FirebaseStorage.instance.ref().child('meeting_images/$fileName');
-    await ref.putFile(image);
-    return await ref.getDownloadURL();
+
+    SettableMetadata metadata = SettableMetadata(contentType: 'image/jpeg');
+    await ref.putFile(image, metadata);
+
+    String downloadURL = await ref.getDownloadURL();
+    return downloadURL;
+  } catch (e) {
+    print('이미지 업로드 오류: $e');
+    return null;
   }
+}
 
   Future<void> _registerMeeting() async {
     if (_formKey.currentState!.validate() && _selectedDate != null && _startTime != null && _endTime != null) {

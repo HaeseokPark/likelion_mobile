@@ -1,7 +1,10 @@
 import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/material.dart';
+import 'package:likelion/activities.dart';
 import 'package:likelion/detail.dart';
 import 'package:likelion/home.dart';
+import 'package:likelion/mypage.dart';
+import 'package:likelion/profile.dart';
 import 'package:likelion/userlist.dart';
 import 'firebase_options.dart';
 import 'login.dart'; 
@@ -26,10 +29,14 @@ class MyApp extends StatelessWidget {
       routes: {
         '/': (context) => const LoginPage(),
         '/login': (BuildContext context) => const LoginPage(),
+        '/anilogin': (BuildContext context) => const LoginPage(),
         '/logout': (BuildContext context) => const LoginPage(),
         '/home': (BuildContext context) => HomePage(), 
         '/register': (BuildContext context) => RegisterMeetingPage(), 
+        '/mypage': (BuildContext context) => MyPage(),
+        // '/profile': (BuildContext context) => ProfilePage();
         '/user': (BuildContext context) => UserListPage(),
+        '/activities' : (BuildContext context) => ActivityPage(),
         '/calendar' : (BuildContext context) => CalendarPage(),
       },
     );

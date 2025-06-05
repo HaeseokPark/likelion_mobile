@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:likelion/home.dart';
+import 'package:likelion/mypage.dart';
 
 class GlobalAppBar extends StatelessWidget implements PreferredSizeWidget {
   final String title;
@@ -24,7 +25,7 @@ class GlobalAppBar extends StatelessWidget implements PreferredSizeWidget {
         IconButton(
           icon: Icon(Icons.account_circle_outlined),
           onPressed: () {
-            // Navigator.push(context,MaterialPageRoute(builder: (context) => ProfilePage()));
+            Navigator.push(context,MaterialPageRoute(builder: (context) => MyPage()));
           },
         ),
       ],

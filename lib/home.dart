@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:likelion/detail.dart';
-import 'package:likelion/widgets/date_formatter.dart';
+import 'package:likelion/model/date_formatter.dart';
 import 'package:likelion/widgets/global_appbar.dart';
 import 'package:likelion/widgets/global_bottombar.dart';
 import 'package:likelion/widgets/sort_filter.dart';
@@ -75,48 +75,106 @@ class _HomePageState extends State<HomePage> {
                         String endTime = data['end_time'] ?? '';
                         String content = data['content'] ?? '';
                         String invitedFriend = data['invited_friend'] ?? '';
+                        String imageUrl = data['imageUrl'] ?? '';
 
                         return Card(
+                          clipBehavior: Clip.antiAlias,
                           child: InkWell(
                             onTap: () {
                               Navigator.push(
                                 context,
                                 MaterialPageRoute(
-                                  builder: (context) => DetailPage(docId: doc.id),
-                                  
+                                  builder:
+                                      (context) => DetailPage(docId: doc.id),
                                 ),
                               );
                             },
-                            child: Padding(
-                              padding: const EdgeInsets.all(8.0),
-                              child: Column(
-                                crossAxisAlignment: CrossAxisAlignment.start,
-                                children: [
-                                  Text(
-                                    title,
-                                    style:
-                                        Theme.of(context).textTheme.titleMedium,
+                            child: Column(
+                              mainAxisSize: MainAxisSize.min,
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                SizedBox(
+                                  height: 120,
+                                  width: double.infinity,
+                                  child:
+                                      imageUrl.isNotEmpty &&
+                                              imageUrl.startsWith('http')
+                                          ? Image.network(
+                                            imageUrl,
+                                            fit: BoxFit.cover,
+                                            errorBuilder:
+                                                (context, error, stackTrace) =>
+                                                    const Icon(
+                                                      Icons.broken_image,
+                                                    ),
+                                            loadingBuilder: (
+                                              context,
+                                              child,
+                                              loadingProgress,
+                                            ) {
+                                              if (loadingProgress == null)
+                                                return child;
+                                              return const Center(
+                                                child:
+                                                    CircularProgressIndicator(),
+                                              );
+                                            },
+                                          )
+                                          : Image.asset(
+                                            'assets/DOST-logo.png',
+                                            fit: BoxFit.cover,
+                                          ),
+                                ),
+                                Padding(
+                                  padding: const EdgeInsets.all(8.0),
+                                  child: Column(
+                                    crossAxisAlignment:
+                                        CrossAxisAlignment.start,
+                                    children: [
+                                      Text(
+                                        title,
+                                        style:
+                                            Theme.of(
+                                              context,
+                                            ).textTheme.titleMedium,
+                                        maxLines: 1,
+                                        overflow: TextOverflow.ellipsis,
+                                      ),
+                                      const SizedBox(height: 4),
+                                      Text(
+                                        formatMeetingDate(
+                                          date,
+                                          startTime,
+                                          endTime,
+                                        ),
+                                        style:
+                                            Theme.of(
+                                              context,
+                                            ).textTheme.bodySmall,
+                                        maxLines: 1,
+                                        overflow: TextOverflow.ellipsis,
+                                      ),
+                                      const SizedBox(height: 10),
+                                      Text(
+                                        content,
+                                        style:
+                                            Theme.of(
+                                              context,
+                                            ).textTheme.bodyMedium,
+                                        maxLines: 2,
+                                        overflow: TextOverflow.ellipsis,
+                                      ),
+                                      // const SizedBox(height: 4),
+                                      // Text(
+                                      //   '초대: $invitedFriend',
+                                      //   style: Theme.of(context).textTheme.bodySmall,
+                                      //   maxLines: 1,
+                                      //   overflow: TextOverflow.ellipsis,
+                                      // ),
+                                    ],
                                   ),
-                                  SizedBox(height: 4),
-                                  Text(
-                                    formatMeetingDate(date, startTime, endTime),
-                                    style:
-                                        Theme.of(context).textTheme.bodySmall,
-                                  ),
-                                  SizedBox(height: 4),
-                                  Text(
-                                    content,
-                                    maxLines: 2,
-                                    overflow: TextOverflow.ellipsis,
-                                  ),
-                                  SizedBox(height: 4),
-                                  Text(
-                                    '초대: $invitedFriend',
-                                    style:
-                                        Theme.of(context).textTheme.bodySmall,
-                                  ),
-                                ],
-                              ),
+                                ),
+                              ],
                             ),
                           ),
                         );
@@ -133,7 +191,7 @@ class _HomePageState extends State<HomePage> {
         },
         child: const Icon(Icons.add),
       ),
-      bottomNavigationBar: GlobalBottomBar(),
+      bottomNavigationBar: GlobalBottomBar(selectedIndex: 1),
     );
   }
 }
