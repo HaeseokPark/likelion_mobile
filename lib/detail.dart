@@ -1,11 +1,13 @@
 import 'package:flutter/material.dart';
-import 'package:likelion/model/date_formatter.dart';
+import 'package:likelion/widgets/date_formatter.dart';
 import 'package:likelion/widgets/global_appbar.dart';
 import 'package:likelion/widgets/global_bottombar.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
+import 'package:firebase_storage/firebase_storage.dart';
 import 'package:flutter_swipe_button/flutter_swipe_button.dart';
 import 'package:shimmer/shimmer.dart';
+
 
 class DetailPage extends StatelessWidget {
   const DetailPage({super.key, required this.docId});
@@ -106,7 +108,7 @@ class DetailPage extends StatelessWidget {
                           style: ElevatedButton.styleFrom(
                             backgroundColor: Colors.blue,
                             foregroundColor: Colors.white,
-                            textStyle: const TextStyle(fontSize: 16),
+                            textStyle: TextStyle(color: Colors.white),
                             shape: RoundedRectangleBorder(
                               borderRadius: BorderRadius.circular(20),
                             ),
