@@ -44,20 +44,20 @@ class _RegisterMeetingPageState extends State<RegisterMeetingPage> {
   }
 
   Future<String?> _uploadImage(File image) async {
-  try {
-    String fileName = DateTime.now().millisecondsSinceEpoch.toString();
-    Reference ref = FirebaseStorage.instance.ref().child('meeting_images/$fileName');
+    try {
+      String fileName = DateTime.now().millisecondsSinceEpoch.toString();
+      Reference ref = FirebaseStorage.instance.ref().child('meeting_images/$fileName');
 
-    SettableMetadata metadata = SettableMetadata(contentType: 'image/jpeg');
-    await ref.putFile(image, metadata);
+      SettableMetadata metadata = SettableMetadata(contentType: 'image/jpeg');
+      await ref.putFile(image, metadata);
 
-    String downloadURL = await ref.getDownloadURL();
-    return downloadURL;
-  } catch (e) {
-    print('이미지 업로드 오류: $e');
-    return null;
+      String downloadURL = await ref.getDownloadURL();
+      return downloadURL;
+    } catch (e) {
+      print('이미지 업로드 오류: $e');
+      return null;
+    }
   }
-}
 
   Future<void> _registerMeeting() async {
     if (!_formKey.currentState!.validate() || _selectedDate == null || _startTime == null || _endTime == null) {
@@ -79,7 +79,7 @@ class _RegisterMeetingPageState extends State<RegisterMeetingPage> {
         'start_time': _startTime!.format(context),
         'end_time': _endTime!.format(context),
         'content': _contentController.text,
-        'invited_friends': _invitedFriends.map((f) => f['displayName'] ?? '').toList(), // 친구 displayName 리스트 저장
+        'invited_friends': _invitedFriends.map((f) => f['displayName'] ?? '').toList(),
         'imageUrl': imageUrl ?? '',
         'created_at': Timestamp.now(),
       });
@@ -97,49 +97,136 @@ class _RegisterMeetingPageState extends State<RegisterMeetingPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: Text('모임 등록'),backgroundColor: Colors.blue,),
+      appBar: AppBar(
+        title: const Text('모임 등록'),
+        backgroundColor: Colors.blueAccent,
+        centerTitle: true,
+      ),
       body: _isLoading
           ? const Center(child: CircularProgressIndicator())
-          : Padding(
-              padding: const EdgeInsets.all(16.0),
+          : SingleChildScrollView(
+              padding: const EdgeInsets.all(20),
               child: Form(
                 key: _formKey,
-                child: ListView(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    TextFormField(
-                      controller: _titleController,
-                      decoration: InputDecoration(labelText: '제목'),
-                      validator: (value) =>
-                          value == null || value.isEmpty ? '제목을 입력하세요' : null,
+                    _buildSectionLabel('제목'),
+                    _buildTextField(_titleController, '모임 제목을 입력하세요'),
+
+                    const SizedBox(height: 20),
+                    _buildSectionLabel('날짜 및 시간'),
+                    _buildDateTile('날짜 선택', _selectedDate == null
+                        ? '선택 안됨'
+                        : _selectedDate!.toLocal().toString().split(' ')[0],
+                      Icons.calendar_today,
+                      () => _selectDate(context),
                     ),
-                    ListTile(
-                      title: Text(_selectedDate == null
-                          ? '날짜 선택'
-                          : '날짜: ${_selectedDate!.toLocal()}'.split(' ')[0]),
-                      trailing: Icon(Icons.calendar_today),
-                      onTap: () => _selectDate(context),
+                    _buildDateTile('시작 시간', _startTime?.format(context) ?? '선택 안됨',
+                      Icons.access_time,
+                      () => _selectTime(context, true),
                     ),
-                    ListTile(
-                      title: Text(_startTime == null
-                          ? '시작 시간 선택'
-                          : '시작: ${_startTime!.format(context)}'),
-                      trailing: Icon(Icons.access_time),
-                      onTap: () => _selectTime(context, true),
+                    _buildDateTile('종료 시간', _endTime?.format(context) ?? '선택 안됨',
+                      Icons.access_time,
+                      () => _selectTime(context, false),
                     ),
-                    ListTile(
-                      title: Text(_endTime == null
-                          ? '종료 시간 선택'
-                          : '종료: ${_endTime!.format(context)}'),
-                      trailing: Icon(Icons.access_time),
-                      onTap: () => _selectTime(context, false),
-                    ),
-                    TextFormField(
-                      controller: _contentController,
-                      decoration: InputDecoration(labelText: '내용'),
-                      maxLines: 3,
-                    ),
+
+                    const SizedBox(height: 20),
+                    _buildSectionLabel('내용'),
+                    _buildTextField(_contentController, '내용을 입력하세요', maxLines: 3),
+
+                    const SizedBox(height: 20),
+                    _buildSectionLabel('이미지'),
+                    _selectedImage != null
+                        ? ClipRRect(
+                            borderRadius: BorderRadius.circular(8),
+                            child: Image.file(_selectedImage!, height: 150),
+                          )
+                        : OutlinedButton.icon(
+                            onPressed: _selectImage,
+                            icon: const Icon(Icons.image),
+                            label: const Text('이미지 선택'),
+                          ),
+
+                    const SizedBox(height: 20),
+                    _buildSectionLabel('친구 초대'),
                     ElevatedButton(
-  onPressed: () async {
+                      onPressed: _inviteFriends,
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: Colors.deepPurple,
+                        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+                        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+                      ),
+                      child: const Text('친구 초대하기'),
+                    ),
+
+                    if (_invitedFriends.isNotEmpty)
+                      Padding(
+                        padding: const EdgeInsets.only(top: 8.0),
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: _invitedFriends.map((f) {
+                            return ListTile(
+                              leading: const Icon(Icons.person),
+                              title: Text(f['displayName'] ?? '이름 없음'),
+                            );
+                          }).toList(),
+                        ),
+                      ),
+
+                    const SizedBox(height: 30),
+                    Center(
+                      child: ElevatedButton(
+                        onPressed: _registerMeeting,
+                        style: ElevatedButton.styleFrom(
+                          padding: const EdgeInsets.symmetric(horizontal: 40, vertical: 14),
+                          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                        ),
+                        child: const Text('등록하기', style: TextStyle(fontSize: 16)),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ),
+    );
+  }
+
+  Widget _buildSectionLabel(String text) {
+    return Text(
+      text,
+      style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+    );
+  }
+
+  Widget _buildTextField(TextEditingController controller, String hint, {int maxLines = 1}) {
+    return TextFormField(
+      controller: controller,
+      maxLines: maxLines,
+      validator: (value) => value == null || value.isEmpty ? '필수 항목입니다' : null,
+      decoration: InputDecoration(
+        hintText: hint,
+        border: OutlineInputBorder(borderRadius: BorderRadius.circular(10)),
+        contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+      ),
+    );
+  }
+
+  Widget _buildDateTile(String label, String value, IconData icon, VoidCallback onTap) {
+    return Card(
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+      margin: const EdgeInsets.symmetric(vertical: 6),
+      child: ListTile(
+        leading: Icon(icon),
+        title: Text(label),
+        subtitle: Text(value),
+        trailing: const Icon(Icons.chevron_right),
+        onTap: onTap,
+      ),
+    );
+  }
+
+  void _inviteFriends() async {
     final selectedFriends = await Navigator.push(
       context,
       MaterialPageRoute(builder: (context) => const UserListPage()),
@@ -148,53 +235,22 @@ class _RegisterMeetingPageState extends State<RegisterMeetingPage> {
     if (!mounted) return;
 
     if (selectedFriends != null && selectedFriends is List) {
-  try {
-    final friendsList = (selectedFriends as List)
-        .whereType<Map<String, dynamic>>()
-        .map((friend) => {
-              'uid': friend['uid'].toString(),
-              'displayName': friend['displayName'].toString(),
-            })
-        .toList();
+      try {
+        final friendsList = (selectedFriends as List)
+            .whereType<Map<String, dynamic>>()
+            .map((friend) => {
+                  'uid': friend['uid'].toString(),
+                  'displayName': friend['displayName'].toString(),
+                })
+            .toList();
 
-    setState(() {
-      _invitedFriends = friendsList;
-    });
-  } catch (e) {
-    print("친구 변환 오류: $e");
-  }
-}
-
-  },
-  child: const Text('친구 초대하기'),
-),
-if (_invitedFriends.isNotEmpty)
-  Column(
-    crossAxisAlignment: CrossAxisAlignment.start,
-    children: [
-      const Text('초대한 친구들:'),
-      ..._invitedFriends.map(
-        (f) => Text('- ${f['displayName'] ?? '이름 없음'}'),
-      ),
-    ],
-  ),
-
-                    _selectedImage != null
-                        ? Image.file(_selectedImage!, height: 150)
-                        : ElevatedButton.icon(
-                            onPressed: _selectImage,
-                            icon: Icon(Icons.image),
-                            label: Text('이미지 선택'),
-                          ),
-                    ElevatedButton(
-                      onPressed: _registerMeeting,
-                      child: Text('등록하기'),
-                    ),
-                  ],
-                ),
-              ),
-            ),
-    );
+        setState(() {
+          _invitedFriends = friendsList;
+        });
+      } catch (e) {
+        print("친구 변환 오류: $e");
+      }
+    }
   }
 
   Future<void> _selectDate(BuildContext context) async {

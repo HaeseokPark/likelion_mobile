@@ -21,17 +21,22 @@ class MyPage extends StatelessWidget {
     final email = isAnonymous ? 'Anonymous' : user.email ?? 'Anonymous';
 
     return Scaffold(
-      backgroundColor: Colors.white,
+      backgroundColor: const Color(0xFFF6F8FA),
       appBar: AppBar(
         backgroundColor: Colors.white,
         elevation: 1,
         leading: IconButton(
-          icon: const Icon(Icons.arrow_back, color: Colors.black),
+          icon: const Icon(Icons.arrow_back, color: Colors.black87),
           onPressed: () => Navigator.pop(context),
         ),
+        title: const Text(
+          '마이페이지',
+          style: TextStyle(color: Colors.black87, fontWeight: FontWeight.bold),
+        ),
+        centerTitle: true,
         actions: [
           IconButton(
-            icon: const Icon(Icons.logout, color: Colors.black),
+            icon: const Icon(Icons.logout, color: Colors.black87),
             onPressed: () async {
               await signOutGoogleAndFirebase();
               if (context.mounted) {
@@ -44,9 +49,9 @@ class MyPage extends StatelessWidget {
       body: Center(
         child: Container(
           margin: const EdgeInsets.all(20),
-          padding: const EdgeInsets.all(24),
+          padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 32),
           decoration: BoxDecoration(
-            color: Colors.grey[100],
+            color: Colors.white,
             borderRadius: BorderRadius.circular(20),
             boxShadow: [
               BoxShadow(
@@ -59,43 +64,54 @@ class MyPage extends StatelessWidget {
           child: Column(
             mainAxisSize: MainAxisSize.min,
             children: [
-              ClipOval(
-                child: Image.network(
-                  photoUrl,
-                  width: 180,
-                  height: 180,
-                  fit: BoxFit.cover,
-                  errorBuilder: (context, error, stackTrace) => const Icon(
-                    Icons.account_circle,
-                    color: Colors.grey,
-                    size: 180,
-                  ),
-                ),
+              CircleAvatar(
+                radius: 60,
+                backgroundColor: Colors.grey[200],
+                backgroundImage: photoUrl.isNotEmpty ? NetworkImage(photoUrl) : null,
+                child: photoUrl.isEmpty
+                    ? const Icon(Icons.account_circle, size: 120, color: Colors.grey)
+                    : null,
               ),
               const SizedBox(height: 20),
               Text(
-                '$uid',
+                uid ?? '이름 없음',
                 style: const TextStyle(
-                  color: Colors.black87,
-                  fontSize: 18,
+                  fontSize: 20,
                   fontWeight: FontWeight.bold,
+                  color: Colors.black87,
                 ),
-                textAlign: TextAlign.center,
               ),
-              const Divider(
-                color: Colors.black26,
-                indent: 40,
-                endIndent: 40,
-                height: 24,
-              ),
+              const SizedBox(height: 6),
               Text(
                 email,
                 style: const TextStyle(
-                  color: Colors.black54,
                   fontSize: 16,
+                  color: Colors.black54,
                 ),
-                textAlign: TextAlign.center,
               ),
+              const Divider(
+                color: Colors.black26,
+                height: 32,
+                thickness: 0.8,
+                indent: 40,
+                endIndent: 40,
+              ),
+              const SizedBox(height: 10),
+              ElevatedButton.icon(
+                onPressed: () async {
+                  await signOutGoogleAndFirebase();
+                  if (context.mounted) {
+                    Navigator.pushNamedAndRemoveUntil(context, '/login', (_) => false);
+                  }
+                },
+                icon: const Icon(Icons.logout),
+                label: const Text('로그아웃'),
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: Colors.redAccent,
+                  padding: const EdgeInsets.symmetric(horizontal: 30, vertical: 14),
+                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                ),
+              )
             ],
           ),
         ),
