@@ -10,8 +10,9 @@ class MyPage extends StatelessWidget {
     final user = FirebaseAuth.instance.currentUser;
 
     if (user == null) {
-      return const Scaffold(
-        body: Center(child: Text('로그인되지 않은 사용자입니다.')),
+      return Scaffold(
+        appBar: AppBar(title: const Text('Profile'), backgroundColor: Colors.blue),
+        body: const Center(child: Text('로그인되지 않은 사용자입니다.')),
       );
     }
 
