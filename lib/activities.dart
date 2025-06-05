@@ -132,7 +132,7 @@ class ActivityPage extends StatelessWidget {
           },
         ),
       ),
-      bottomNavigationBar: GlobalBottomBar(selectedIndex: 1),
+      bottomNavigationBar: GlobalBottomBar(selectedIndex: 0),
     );
   }
 }
