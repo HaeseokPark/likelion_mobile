@@ -77,7 +77,12 @@ class _HomePageState extends State<HomePage> {
                     return Card(
                       child: InkWell(
                         onTap: () {
-                          // 상세 페이지 이동 구현 가능
+                          Navigator.push(
+                            context,
+                            MaterialPageRoute(
+                              builder: (_) => DetailPage(docId: doc.id),
+                            ),
+                          );
                         },
                         child: Column(
                           crossAxisAlignment: CrossAxisAlignment.start,
@@ -135,7 +140,7 @@ class _HomePageState extends State<HomePage> {
         },
         child: const Icon(Icons.add),
       ),
-      bottomNavigationBar: GlobalBottomBar(),
+      bottomNavigationBar: GlobalBottomBar(num: 1),
     );
   }
 }

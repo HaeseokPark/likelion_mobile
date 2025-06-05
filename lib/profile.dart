@@ -91,7 +91,7 @@ class DetailPage extends StatelessWidget {
       ),
       floatingActionButtonLocation: FloatingActionButtonLocation.centerFloat,
       // 하단 네비게이션 바
-      bottomNavigationBar: GlobalBottomBar(),
+      bottomNavigationBar: GlobalBottomBar(num:1),
     );
   }
 }
