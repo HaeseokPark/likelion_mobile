@@ -135,29 +135,46 @@ class _RegisterMeetingPageState extends State<RegisterMeetingPage> {
                       maxLines: 3,
                     ),
                     ElevatedButton(
-                      onPressed: () async {
-                        setState(() => _isLoading = true);
-                        final selectedFriends = await Navigator.push(
-                          context,
-                          MaterialPageRoute(builder: (context) => const UserListPage()),
-                        );
-                        setState(() => _isLoading = false);
-                        if (selectedFriends != null && selectedFriends is List) {
-                          setState(() {
-                            _invitedFriends = List<Map<String, String>>.from(selectedFriends);
-                          });
-                        }
-                      },
-                      child: Text('친구 초대하기'),
-                    ),
-                    if (_invitedFriends.isNotEmpty)
-                      Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Text('초대한 친구들:'),
-                          ..._invitedFriends.map((f) => Text('- ${f['displayName']}')).toList(),
-                        ],
-                      ),
+  onPressed: () async {
+    final selectedFriends = await Navigator.push(
+      context,
+      MaterialPageRoute(builder: (context) => const UserListPage()),
+    );
+
+    if (!mounted) return;
+
+    if (selectedFriends != null && selectedFriends is List) {
+  try {
+    final friendsList = (selectedFriends as List)
+        .whereType<Map<String, dynamic>>()
+        .map((friend) => {
+              'uid': friend['uid'].toString(),
+              'displayName': friend['displayName'].toString(),
+            })
+        .toList();
+
+    setState(() {
+      _invitedFriends = friendsList;
+    });
+  } catch (e) {
+    print("친구 변환 오류: $e");
+  }
+}
+
+  },
+  child: const Text('친구 초대하기'),
+),
+if (_invitedFriends.isNotEmpty)
+  Column(
+    crossAxisAlignment: CrossAxisAlignment.start,
+    children: [
+      const Text('초대한 친구들:'),
+      ..._invitedFriends.map(
+        (f) => Text('- ${f['displayName'] ?? '이름 없음'}'),
+      ),
+    ],
+  ),
+
                     _selectedImage != null
                         ? Image.file(_selectedImage!, height: 150)
                         : ElevatedButton.icon(

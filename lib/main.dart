@@ -1,9 +1,11 @@
 import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/material.dart';
+import 'package:firebase_core/firebase_core.dart';
 import 'package:likelion/detail.dart';
 import 'package:likelion/home.dart';
 import 'package:likelion/userlist.dart';
 import 'firebase_options.dart';
+import 'package:likelion/detail.dart';
 import 'login.dart'; 
 import 'register_meeting_page.dart';
 
