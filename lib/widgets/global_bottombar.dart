@@ -2,16 +2,14 @@ import 'package:flutter/material.dart';
 import 'package:likelion/home.dart';
 import 'package:likelion/calendar.dart';
 
-
 class GlobalBottomBar extends StatelessWidget {
-  final int num;
-  
-  const GlobalBottomBar({super.key,required this.num});
+  const GlobalBottomBar({super.key, required this.selectedIndex});
+  final int selectedIndex;
 
   @override
   Widget build(BuildContext context) {
     return BottomNavigationBar(
-      currentIndex: num,
+      currentIndex: selectedIndex,
       onTap: (index) {
         if (index == 1) {
           // 메인

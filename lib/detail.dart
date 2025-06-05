@@ -1,8 +1,9 @@
 import 'package:flutter/material.dart';
-import 'package:likelion/widgets/date_formatter.dart';
+import 'package:likelion/model/date_formatter.dart';
 import 'package:likelion/widgets/global_appbar.dart';
 import 'package:likelion/widgets/global_bottombar.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:firebase_storage/firebase_storage.dart';
 
 class DetailPage extends StatelessWidget {
   const DetailPage({super.key, required this.docId});
@@ -33,7 +34,7 @@ class DetailPage extends StatelessWidget {
           final startTime = data['start_time'] ?? '';
           final endTime = data['end_time'] ?? '';
           final content = data['content'] ?? '';
-          final imageUrl = data['image_url'] ?? '';
+          final imageUrl = data['imageUrl'] ?? '';
 
           return ListView(
             padding: const EdgeInsets.all(20),
@@ -41,8 +42,31 @@ class DetailPage extends StatelessWidget {
               Row(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  // 파이어 베이스에서 불러오기
-                  Flexible(child: Image.asset('assets/DOST-logo.png')),
+                  SizedBox(
+                    width: 150,
+                    height: 150,
+                    child:
+                        imageUrl.isNotEmpty && imageUrl.startsWith('http')
+                            ? Image.network(
+                              imageUrl,
+                              fit: BoxFit.cover,
+                              errorBuilder: (context, error, stackTrace) {
+                                print('Image load error: $error');
+                                return Icon(Icons.broken_image);
+                              },
+                              loadingBuilder: (
+                                context,
+                                child,
+                                loadingProgress,
+                              ) {
+                                if (loadingProgress == null) return child;
+                                return Center(
+                                  child: CircularProgressIndicator(),
+                                );
+                              },
+                            )
+                            : Image.asset('assets/DOST-logo.png'),
+                  ),
                   const SizedBox(width: 20),
                   Expanded(
                     child: Column(
@@ -65,10 +89,15 @@ class DetailPage extends StatelessWidget {
                         ),
                         const SizedBox(height: 10),
                         ElevatedButton(
-                          onPressed: () {},
+                          onPressed: () {
+                            Navigator.pushReplacementNamed(context, '/activities');
+                          },
                           style: ElevatedButton.styleFrom(
                             backgroundColor: Colors.blue,
-                            textStyle: TextStyle(color: Colors.white),
+                            foregroundColor: Colors.white,
+                            textStyle: const TextStyle(
+                              fontSize: 16,
+                            ),
                             shape: RoundedRectangleBorder(
                               borderRadius: BorderRadius.circular(20),
                             ),
@@ -93,9 +122,10 @@ class DetailPage extends StatelessWidget {
               Text('• 장소\n  ${data['location'] ?? '[장소 정보 없음]'}'),
               SizedBox(height: 8),
 
-              Text(data['capacity'] != null
-                ? '• 모집 인원\n  ${data['capacity']}명'
-                : '• 모집 인원\n  [미정]',
+              Text(
+                data['capacity'] != null
+                    ? '• 모집 인원\n  ${data['capacity']}명'
+                    : '• 모집 인원\n  [미정]',
               ),
               SizedBox(height: 8),
 
@@ -122,15 +152,15 @@ class DetailPage extends StatelessWidget {
                         FirebaseFirestore.instance
                             .collection('participants')
                             .snapshots(),
-                    builder: (context, snapshot) { 
+                    builder: (context, snapshot) {
                       if (snapshot.connectionState == ConnectionState.waiting) {
-                        return const CircularProgressIndicator(); // 로딩 중이면 동그란 로딩 표시
+                        return const CircularProgressIndicator(); 
                       }
                       if (!snapshot.hasData || snapshot.data!.docs.isEmpty) {
-                        return const Text('참가자가 없습니다.'); // 데이터 없을 때
+                        return const Text('참가자가 없습니다.');
                       }
 
-                      final participants = snapshot.data!.docs; // 문서들 가져오기
+                      final participants = snapshot.data!.docs; 
 
                       return SingleChildScrollView(
                         scrollDirection: Axis.horizontal,
@@ -139,13 +169,13 @@ class DetailPage extends StatelessWidget {
                               participants.map((doc) {
                                 final name = doc['name'] ?? '이름 없음';
                                 final imageUrl =
-                                    doc['imageUrl'] ?? ''; // 이미지 없으면 빈 문자열
+                                    doc['imageUrl'] ?? ''; 
                                 return Padding(
                                   padding: const EdgeInsets.only(right: 10),
                                   child: _participantCard(
                                     name,
                                     imageUrl,
-                                  ), // 이름과 이미지로 카드 생성
+                                  ),
                                 );
                               }).toList(),
                         ),
@@ -158,6 +188,7 @@ class DetailPage extends StatelessWidget {
           );
         },
       ),
+      bottomNavigationBar: GlobalBottomBar(selectedIndex: 1),
     );
   }
 

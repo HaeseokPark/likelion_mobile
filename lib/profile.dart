@@ -4,8 +4,8 @@ import 'package:likelion/model/meeting.dart';
 import 'package:likelion/widgets/global_bottombar.dart';
 import 'widgets/global_appbar.dart';
 
-class DetailPage extends StatelessWidget {
-  const DetailPage({super.key, required Meeting meeting});
+class ProfilePage extends StatelessWidget {
+  const ProfilePage({super.key, required Meeting meeting});
 
   @override
   Widget build(BuildContext context) {
@@ -91,7 +91,7 @@ class DetailPage extends StatelessWidget {
       ),
       floatingActionButtonLocation: FloatingActionButtonLocation.centerFloat,
       // 하단 네비게이션 바
-      bottomNavigationBar: GlobalBottomBar(num:1),
+      bottomNavigationBar: GlobalBottomBar(selectedIndex: 1),
     );
   }
 }

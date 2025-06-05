@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:likelion/detail.dart';
-import 'package:likelion/widgets/date_formatter.dart';
+import 'package:likelion/model/date_formatter.dart';
 import 'package:likelion/widgets/global_appbar.dart';
 import 'package:likelion/widgets/global_bottombar.dart';
 import 'package:likelion/widgets/sort_filter.dart';
@@ -65,69 +65,62 @@ class _HomePageState extends State<HomePage> {
                   crossAxisCount: numberOfCardsPerLine,
                   padding: const EdgeInsets.all(16.0),
                   childAspectRatio: 8.0 / 9.0,
-                  children: docs.map((doc) {
-                    var data = doc.data() as Map<String, dynamic>;
-                    String title = data['title'] ?? '제목 없음';
-                    String date = data['date'] ?? '';
-                    String startTime = data['start_time'] ?? '';
-                    String content = data['content'] ?? '';
-                    String imageUrl = data['imageUrl'] ?? '';
-                    List<dynamic> invitedFriends = data['invited_friends'] ?? [];
+                  children:
+                      docs.map((doc) {
+                        var data = doc.data() as Map<String, dynamic>;
+                        String title = data['title'] ?? '제목 없음';
+                        String date = data['date'] ?? '';
+                        String startTime = data['start_time'] ?? '';
+                        String endTime = data['end_time'] ?? '';
+                        String content = data['content'] ?? '';
+                        String invitedFriend = data['invited_friend'] ?? '';
+                        String imageUrl = data['imageUrl'] ?? '';
 
-                    return Card(
-                      child: InkWell(
-                        onTap: () {
-                          Navigator.push(
-                            context,
-                            MaterialPageRoute(
-                              builder: (_) => DetailPage(docId: doc.id),
-                            ),
-                          );
-                        },
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            imageUrl.isNotEmpty
-                                ? Image.network(
-                                    imageUrl,
-                                    height: 100,
-                                    width: double.infinity,
-                                    fit: BoxFit.cover,
-                                    errorBuilder: (context, error, stackTrace) {
-                                      return Container(
-                                        height: 100,
-                                        color: Colors.grey[300],
-                                        child: const Center(child: Text('이미지 로드 실패')),
-                                      );
-                                    },
-                                  )
-                                : Container(
-                                    height: 100,
-                                    color: Colors.grey[300],
-                                    child: const Center(child: Text('이미지 없음')),
-                                  ),
-                            Padding(
+                        return Card(
+                          child: InkWell(
+                            onTap: () {
+                              Navigator.push(
+                                context,
+                                MaterialPageRoute(
+                                  builder: (context) => DetailPage(docId: doc.id),
+                                  
+                                ),
+                              );
+                            },
+                            child: Padding(
                               padding: const EdgeInsets.all(8.0),
                               child: Column(
                                 crossAxisAlignment: CrossAxisAlignment.start,
                                 children: [
-                                  Text(title, style: Theme.of(context).textTheme.titleMedium),
-                                  SizedBox(height: 4),
-                                  Text('$date $startTime', style: Theme.of(context).textTheme.bodySmall),
-                                  Text(content, maxLines: 2, overflow: TextOverflow.ellipsis),
                                   Text(
-                                    '초대: ${invitedFriends.join(', ')}',
-                                    style: Theme.of(context).textTheme.bodySmall,
+                                    title,
+                                    style:
+                                        Theme.of(context).textTheme.titleMedium,
+                                  ),
+                                  SizedBox(height: 4),
+                                  Text(
+                                    formatMeetingDate(date, startTime, endTime),
+                                    style:
+                                        Theme.of(context).textTheme.bodySmall,
+                                  ),
+                                  SizedBox(height: 4),
+                                  Text(
+                                    content,
+                                    maxLines: 2,
                                     overflow: TextOverflow.ellipsis,
+                                  ),
+                                  SizedBox(height: 4),
+                                  Text(
+                                    '초대: $invitedFriend',
+                                    style:
+                                        Theme.of(context).textTheme.bodySmall,
                                   ),
                                 ],
                               ),
                             ),
-                          ],
-                        ),
-                      ),
-                    );
-                  }).toList(),
+                          ),
+                        );
+                      }).toList(),
                 );
               },
             ),
@@ -140,7 +133,7 @@ class _HomePageState extends State<HomePage> {
         },
         child: const Icon(Icons.add),
       ),
-      bottomNavigationBar: GlobalBottomBar(num: 1),
+      bottomNavigationBar: GlobalBottomBar(selectedIndex: 1,),
     );
   }
 }

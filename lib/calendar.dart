@@ -132,7 +132,7 @@ class _CalendarPageState extends State<CalendarPage> {
           Expanded(child: _buildEventList()),
         ],
       ),
-      bottomNavigationBar: GlobalBottomBar(num: 2),
+      bottomNavigationBar: GlobalBottomBar(selectedIndex: 2),
     );
   }
 
