@@ -64,7 +64,6 @@ class _HomePageState extends State<HomePage> {
                 return GridView.count(
                   crossAxisCount: numberOfCardsPerLine,
                   padding: const EdgeInsets.all(16.0),
-                  childAspectRatio: 8.0 / 9.0,
                   children:
                       docs.map((doc) {
                         var data = doc.data() as Map<String, dynamic>;
@@ -77,46 +76,107 @@ class _HomePageState extends State<HomePage> {
                         String imageUrl = data['imageUrl'] ?? '';
 
                         return Card(
+                          clipBehavior:
+                              Clip.antiAlias, 
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(12),
+                          ),
                           child: InkWell(
                             onTap: () {
                               Navigator.push(
                                 context,
                                 MaterialPageRoute(
-                                  builder: (context) => DetailPage(docId: doc.id),
-                                  
+                                  builder:
+                                      (context) => DetailPage(docId: doc.id),
                                 ),
                               );
                             },
-                            child: Padding(
-                              padding: const EdgeInsets.all(8.0),
-                              child: Column(
-                                crossAxisAlignment: CrossAxisAlignment.start,
-                                children: [
-                                  Text(
-                                    title,
-                                    style:
-                                        Theme.of(context).textTheme.titleMedium,
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                // 이미지 영역 (카드 상단과 꼭 맞게)
+                                SizedBox(
+                                  height: 90,
+                                  width: double.infinity,
+                                  child:
+                                      imageUrl.isNotEmpty &&
+                                              imageUrl.startsWith('http')
+                                          ? Image.network(
+                                            imageUrl,
+                                            fit: BoxFit.cover,
+                                            errorBuilder: (
+                                              context,
+                                              error,
+                                              stackTrace,
+                                            ) {
+                                              print('Image load error: $error');
+                                              return Icon(Icons.broken_image);
+                                            },
+                                            loadingBuilder: (
+                                              context,
+                                              child,
+                                              loadingProgress,
+                                            ) {
+                                              if (loadingProgress == null)
+                                                return child;
+                                              return Center(
+                                                child:
+                                                    CircularProgressIndicator(),
+                                              );
+                                            },
+                                          )
+                                          : Image.asset(
+                                            'assets/DOST-logo.png',
+                                            fit: BoxFit.cover,
+                                          ),
+                                ),
+                                Padding(
+                                  padding: const EdgeInsets.all(8.0),
+                                  child: Column(
+                                    crossAxisAlignment:
+                                        CrossAxisAlignment.start,
+                                    children: [
+                                      Text(
+                                        title,
+                                        style:
+                                            Theme.of(
+                                              context,
+                                            ).textTheme.titleMedium,
+                                      ),
+                                      SizedBox(height: 4),
+                                      Text(
+                                        formatMeetingDate(
+                                          date,
+                                          startTime,
+                                          endTime,
+                                        ),
+                                        style:
+                                            Theme.of(
+                                              context,
+                                            ).textTheme.bodySmall,
+                                      ),
+                                      SizedBox(height: 7),
+                                      Text(
+                                        content,
+                                        maxLines: 2,
+                                        overflow: TextOverflow.ellipsis,
+                                        style:
+                                            Theme.of(
+                                              context,
+                                            ).textTheme.bodyMedium,
+                                      ),
+                                      // SizedBox(height: 4),
+                                      // Text(
+                                      //   '초대: $invitedFriend',
+                                      //   style:
+                                      //       Theme.of(
+                                      //         context,
+                                      //       ).textTheme.bodySmall,
+                                      // ),
+                                    ],
                                   ),
-                                  SizedBox(height: 4),
-                                  Text(
-                                    formatMeetingDate(date, startTime, endTime),
-                                    style:
-                                        Theme.of(context).textTheme.bodySmall,
-                                  ),
-                                  SizedBox(height: 4),
-                                  Text(
-                                    content,
-                                    maxLines: 2,
-                                    overflow: TextOverflow.ellipsis,
-                                  ),
-                                  SizedBox(height: 4),
-                                  Text(
-                                    '초대: $invitedFriend',
-                                    style:
-                                        Theme.of(context).textTheme.bodySmall,
-                                  ),
-                                ],
-                              ),
+                                ),
+                              ],
                             ),
                           ),
                         );
@@ -133,7 +193,7 @@ class _HomePageState extends State<HomePage> {
         },
         child: const Icon(Icons.add),
       ),
-      bottomNavigationBar: GlobalBottomBar(selectedIndex: 1,),
+      bottomNavigationBar: GlobalBottomBar(selectedIndex: 1),
     );
   }
 }
