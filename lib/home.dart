@@ -20,7 +20,6 @@ class _HomePageState extends State<HomePage> {
   Stream<QuerySnapshot> _getMeetingsStream() {
     Query query = FirebaseFirestore.instance.collection('meetings');
 
-    // 정렬 조건
     if (_currentSort == '최신순') {
       query = query.orderBy('created_at', descending: true);
     } else {
@@ -78,103 +77,46 @@ class _HomePageState extends State<HomePage> {
                         String imageUrl = data['imageUrl'] ?? '';
 
                         return Card(
-                          clipBehavior: Clip.antiAlias,
                           child: InkWell(
                             onTap: () {
                               Navigator.push(
                                 context,
                                 MaterialPageRoute(
-                                  builder:
-                                      (context) => DetailPage(docId: doc.id),
+                                  builder: (context) => DetailPage(docId: doc.id),
+                                  
                                 ),
                               );
                             },
-                            child: Column(
-                              mainAxisSize: MainAxisSize.min,
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              children: [
-                                SizedBox(
-                                  height: 120,
-                                  width: double.infinity,
-                                  child:
-                                      imageUrl.isNotEmpty &&
-                                              imageUrl.startsWith('http')
-                                          ? Image.network(
-                                            imageUrl,
-                                            fit: BoxFit.cover,
-                                            errorBuilder:
-                                                (context, error, stackTrace) =>
-                                                    const Icon(
-                                                      Icons.broken_image,
-                                                    ),
-                                            loadingBuilder: (
-                                              context,
-                                              child,
-                                              loadingProgress,
-                                            ) {
-                                              if (loadingProgress == null)
-                                                return child;
-                                              return const Center(
-                                                child:
-                                                    CircularProgressIndicator(),
-                                              );
-                                            },
-                                          )
-                                          : Image.asset(
-                                            'assets/DOST-logo.png',
-                                            fit: BoxFit.cover,
-                                          ),
-                                ),
-                                Padding(
-                                  padding: const EdgeInsets.all(8.0),
-                                  child: Column(
-                                    crossAxisAlignment:
-                                        CrossAxisAlignment.start,
-                                    children: [
-                                      Text(
-                                        title,
-                                        style:
-                                            Theme.of(
-                                              context,
-                                            ).textTheme.titleMedium,
-                                        maxLines: 1,
-                                        overflow: TextOverflow.ellipsis,
-                                      ),
-                                      const SizedBox(height: 4),
-                                      Text(
-                                        formatMeetingDate(
-                                          date,
-                                          startTime,
-                                          endTime,
-                                        ),
-                                        style:
-                                            Theme.of(
-                                              context,
-                                            ).textTheme.bodySmall,
-                                        maxLines: 1,
-                                        overflow: TextOverflow.ellipsis,
-                                      ),
-                                      const SizedBox(height: 10),
-                                      Text(
-                                        content,
-                                        style:
-                                            Theme.of(
-                                              context,
-                                            ).textTheme.bodyMedium,
-                                        maxLines: 2,
-                                        overflow: TextOverflow.ellipsis,
-                                      ),
-                                      // const SizedBox(height: 4),
-                                      // Text(
-                                      //   '초대: $invitedFriend',
-                                      //   style: Theme.of(context).textTheme.bodySmall,
-                                      //   maxLines: 1,
-                                      //   overflow: TextOverflow.ellipsis,
-                                      // ),
-                                    ],
+                            child: Padding(
+                              padding: const EdgeInsets.all(8.0),
+                              child: Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  Text(
+                                    title,
+                                    style:
+                                        Theme.of(context).textTheme.titleMedium,
                                   ),
-                                ),
-                              ],
+                                  SizedBox(height: 4),
+                                  Text(
+                                    formatMeetingDate(date, startTime, endTime),
+                                    style:
+                                        Theme.of(context).textTheme.bodySmall,
+                                  ),
+                                  SizedBox(height: 4),
+                                  Text(
+                                    content,
+                                    maxLines: 2,
+                                    overflow: TextOverflow.ellipsis,
+                                  ),
+                                  SizedBox(height: 4),
+                                  Text(
+                                    '초대: $invitedFriend',
+                                    style:
+                                        Theme.of(context).textTheme.bodySmall,
+                                  ),
+                                ],
+                              ),
                             ),
                           ),
                         );
@@ -191,7 +133,7 @@ class _HomePageState extends State<HomePage> {
         },
         child: const Icon(Icons.add),
       ),
-      bottomNavigationBar: GlobalBottomBar(selectedIndex: 1),
+      bottomNavigationBar: GlobalBottomBar(selectedIndex: 1,),
     );
   }
 }

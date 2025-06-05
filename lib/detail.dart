@@ -16,7 +16,7 @@ class DetailPage extends StatelessWidget {
 
     return Scaffold(
       backgroundColor: const Color(0xFFF8F1F8),
-      appBar: GlobalAppBar(title: 'DO\'ST'),
+      appBar: AppBar(title: Text('모임 상세'),backgroundColor: Colors.blue,),
       body: FutureBuilder<DocumentSnapshot>(
         future: docRef.get(),
         builder: (context, snapshot) {

@@ -41,30 +41,28 @@ class _UserListPageState extends State<UserListPage> {
       appBar: AppBar(
         title: const Text('유저 목록'),
         actions: [
-IconButton(
-  icon: const Icon(Icons.check),
-  onPressed: () {
-    // 선택된 유저를 Map으로 변환 (필요한 필드만 추출)
-    final selected = _users
-        .where((doc) => _selectedUsers[doc.id] == true)
-        .map((doc) {
-          final data = doc.data() as Map<String, dynamic>;
-          return {
-            'uid': doc.id,
-            'displayName': data['displayName'] ?? '이름 없음',
-          };
-        })
-        .toList();
-    if (selected.isNotEmpty) {
-      Navigator.pop(context, selected); // 안전하게 반환
-    } else {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('친구를 선택하세요.')),
-      );
-    }
-  },
-),
-
+          IconButton(
+            icon: const Icon(Icons.check),
+            onPressed: () {
+              final selected = _users
+                  .where((doc) => _selectedUsers[doc.id] == true)
+                  .map((doc) {
+                    final data = doc.data() as Map<String, dynamic>;
+                    return {
+                      'uid': doc.id,
+                      'displayName': data['displayName'] ?? '이름 없음',
+                    };
+                  })
+                  .toList();
+              if (selected.isNotEmpty) {
+                Navigator.pop(context, selected); // 선택된 친구 데이터 반환
+              } else {
+                ScaffoldMessenger.of(context).showSnackBar(
+                  SnackBar(content: Text('친구를 선택하세요.')),
+                );
+              }
+            },
+          ),
         ],
       ),
       body: Column(
@@ -95,7 +93,8 @@ IconButton(
                 final email = data['email'] ?? '';
                 final searchFilter = _searchController.text.trim().toLowerCase();
 
-                if (searchFilter.isNotEmpty && !displayName.toLowerCase().contains(searchFilter)) {
+                if (searchFilter.isNotEmpty &&
+                    !displayName.toLowerCase().contains(searchFilter)) {
                   return const SizedBox.shrink();
                 }
 

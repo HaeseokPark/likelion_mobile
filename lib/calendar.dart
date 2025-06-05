@@ -2,6 +2,9 @@ import 'package:flutter/material.dart';
 import 'package:table_calendar/table_calendar.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_core/firebase_core.dart';
+import 'widgets/global_appbar.dart';
+import 'widgets/global_bottombar.dart';
+
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -83,7 +86,7 @@ class _CalendarPageState extends State<CalendarPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: const Text('일정 달력')),
+      appBar: GlobalAppBar(title: 'DO\'ST'),
       body: Column(
         children: [
           TableCalendar(
@@ -124,6 +127,7 @@ class _CalendarPageState extends State<CalendarPage> {
           ),
         ],
       ),
+      bottomNavigationBar: GlobalBottomBar(selectedIndex: 2),
     );
   }
 

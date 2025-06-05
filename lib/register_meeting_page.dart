@@ -15,13 +15,14 @@ class RegisterMeetingPage extends StatefulWidget {
 class _RegisterMeetingPageState extends State<RegisterMeetingPage> {
   final _formKey = GlobalKey<FormState>();
   final TextEditingController _titleController = TextEditingController();
+  final TextEditingController _contentController = TextEditingController();
   DateTime? _selectedDate;
   TimeOfDay? _startTime;
   TimeOfDay? _endTime;
-  final TextEditingController _contentController = TextEditingController();
 
   File? _selectedImage;
-  List<Map<String, String>> _invitedFriends = []; // uid와 displayName 저장
+  List<Map<String, String>> _invitedFriends = [];
+  bool _isLoading = false;
 
   @override
   void initState() {
@@ -30,11 +31,15 @@ class _RegisterMeetingPageState extends State<RegisterMeetingPage> {
   }
 
   Future<void> _selectImage() async {
-    final picked = await ImagePicker().pickImage(source: ImageSource.gallery);
-    if (picked != null) {
-      setState(() {
-        _selectedImage = File(picked.path);
-      });
+    try {
+      final picked = await ImagePicker().pickImage(source: ImageSource.gallery);
+      if (picked != null) {
+        setState(() {
+          _selectedImage = File(picked.path);
+        });
+      }
+    } catch (e) {
+      print('이미지 선택 오류: $e');
     }
   }
 
@@ -55,7 +60,14 @@ class _RegisterMeetingPageState extends State<RegisterMeetingPage> {
 }
 
   Future<void> _registerMeeting() async {
-    if (_formKey.currentState!.validate() && _selectedDate != null && _startTime != null && _endTime != null) {
+    if (!_formKey.currentState!.validate() || _selectedDate == null || _startTime == null || _endTime == null) {
+      ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('모든 필드를 입력해주세요.')));
+      return;
+    }
+
+    setState(() => _isLoading = true);
+
+    try {
       String? imageUrl;
       if (_selectedImage != null) {
         imageUrl = await _uploadImage(_selectedImage!);
@@ -67,91 +79,121 @@ class _RegisterMeetingPageState extends State<RegisterMeetingPage> {
         'start_time': _startTime!.format(context),
         'end_time': _endTime!.format(context),
         'content': _contentController.text,
-        'invited_friends': _invitedFriends, // Firestore에 초대한 친구들 저장
+        'invited_friends': _invitedFriends.map((f) => f['displayName'] ?? '').toList(), // 친구 displayName 리스트 저장
         'imageUrl': imageUrl ?? '',
         'created_at': Timestamp.now(),
       });
 
       ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('모임이 등록되었습니다!')));
       Navigator.pop(context);
-    } else {
-      ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('모든 필드를 입력해주세요.')));
+    } catch (e) {
+      print('등록 실패: $e');
+      ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('등록 중 오류 발생: $e')));
+    } finally {
+      setState(() => _isLoading = false);
     }
   }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: Text('모임 등록')),
-      body: Padding(
-        padding: const EdgeInsets.all(16.0),
-        child: Form(
-          key: _formKey,
-          child: ListView(
-            children: [
-              TextFormField(
-                controller: _titleController,
-                decoration: InputDecoration(labelText: '제목'),
-                validator: (value) => value == null || value.isEmpty ? '제목을 입력하세요' : null,
-              ),
-              ListTile(
-                title: Text(_selectedDate == null ? '날짜 선택' : '날짜: ${_selectedDate!.toLocal()}'.split(' ')[0]),
-                trailing: Icon(Icons.calendar_today),
-                onTap: () => _selectDate(context),
-              ),
-              ListTile(
-                title: Text(_startTime == null ? '시작 시간 선택' : '시작: ${_startTime!.format(context)}'),
-                trailing: Icon(Icons.access_time),
-                onTap: () => _selectTime(context, true),
-              ),
-              ListTile(
-                title: Text(_endTime == null ? '종료 시간 선택' : '종료: ${_endTime!.format(context)}'),
-                trailing: Icon(Icons.access_time),
-                onTap: () => _selectTime(context, false),
-              ),
-              TextFormField(
-                controller: _contentController,
-                decoration: InputDecoration(labelText: '내용'),
-                maxLines: 3,
-              ),
-              ElevatedButton(
-                onPressed: () async {
-  final selectedFriends = await Navigator.push(
-    context,
-    MaterialPageRoute(builder: (context) => const UserListPage()),
-  );
-  if (selectedFriends != null && selectedFriends is List) {
-    setState(() {
-      _invitedFriends = List<Map<String, String>>.from(selectedFriends);
-    });
-  }
-},
-
-                child: Text('친구 초대하기'),
-              ),
-              if (_invitedFriends.isNotEmpty)
-                Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
+      appBar: AppBar(title: Text('모임 등록'),backgroundColor: Colors.blue,),
+      body: _isLoading
+          ? const Center(child: CircularProgressIndicator())
+          : Padding(
+              padding: const EdgeInsets.all(16.0),
+              child: Form(
+                key: _formKey,
+                child: ListView(
                   children: [
-                    Text('초대한 친구들:'),
-                    ..._invitedFriends.map((f) => Text('- ${f['displayName']} (uid: ${f['uid']})')).toList(),
+                    TextFormField(
+                      controller: _titleController,
+                      decoration: InputDecoration(labelText: '제목'),
+                      validator: (value) =>
+                          value == null || value.isEmpty ? '제목을 입력하세요' : null,
+                    ),
+                    ListTile(
+                      title: Text(_selectedDate == null
+                          ? '날짜 선택'
+                          : '날짜: ${_selectedDate!.toLocal()}'.split(' ')[0]),
+                      trailing: Icon(Icons.calendar_today),
+                      onTap: () => _selectDate(context),
+                    ),
+                    ListTile(
+                      title: Text(_startTime == null
+                          ? '시작 시간 선택'
+                          : '시작: ${_startTime!.format(context)}'),
+                      trailing: Icon(Icons.access_time),
+                      onTap: () => _selectTime(context, true),
+                    ),
+                    ListTile(
+                      title: Text(_endTime == null
+                          ? '종료 시간 선택'
+                          : '종료: ${_endTime!.format(context)}'),
+                      trailing: Icon(Icons.access_time),
+                      onTap: () => _selectTime(context, false),
+                    ),
+                    TextFormField(
+                      controller: _contentController,
+                      decoration: InputDecoration(labelText: '내용'),
+                      maxLines: 3,
+                    ),
+                    ElevatedButton(
+  onPressed: () async {
+    final selectedFriends = await Navigator.push(
+      context,
+      MaterialPageRoute(builder: (context) => const UserListPage()),
+    );
+
+    if (!mounted) return;
+
+    if (selectedFriends != null && selectedFriends is List) {
+  try {
+    final friendsList = (selectedFriends as List)
+        .whereType<Map<String, dynamic>>()
+        .map((friend) => {
+              'uid': friend['uid'].toString(),
+              'displayName': friend['displayName'].toString(),
+            })
+        .toList();
+
+    setState(() {
+      _invitedFriends = friendsList;
+    });
+  } catch (e) {
+    print("친구 변환 오류: $e");
+  }
+}
+
+  },
+  child: const Text('친구 초대하기'),
+),
+if (_invitedFriends.isNotEmpty)
+  Column(
+    crossAxisAlignment: CrossAxisAlignment.start,
+    children: [
+      const Text('초대한 친구들:'),
+      ..._invitedFriends.map(
+        (f) => Text('- ${f['displayName'] ?? '이름 없음'}'),
+      ),
+    ],
+  ),
+
+                    _selectedImage != null
+                        ? Image.file(_selectedImage!, height: 150)
+                        : ElevatedButton.icon(
+                            onPressed: _selectImage,
+                            icon: Icon(Icons.image),
+                            label: Text('이미지 선택'),
+                          ),
+                    ElevatedButton(
+                      onPressed: _registerMeeting,
+                      child: Text('등록하기'),
+                    ),
                   ],
                 ),
-              _selectedImage != null
-                  ? Image.file(_selectedImage!, height: 150)
-                  : ElevatedButton.icon(
-                      onPressed: _selectImage,
-                      icon: Icon(Icons.image),
-                      label: Text('이미지 선택'),
-                    ),
-              ElevatedButton(
-                onPressed: _registerMeeting,
-                child: Text('등록하기'),
               ),
-            ],
-          ),
-        ),
-      ),
+            ),
     );
   }
 

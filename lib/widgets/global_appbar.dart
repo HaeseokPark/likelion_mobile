@@ -11,6 +11,7 @@ class GlobalAppBar extends StatelessWidget implements PreferredSizeWidget {
   Widget build(BuildContext context) {
     return AppBar(
       backgroundColor: Colors.blue,
+      centerTitle: true,
       leading: IconButton(
         icon: Image.asset('assets/DOST-logo.png'),
         onPressed: () {
