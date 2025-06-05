@@ -4,6 +4,9 @@ import 'package:likelion/widgets/global_appbar.dart';
 import 'package:likelion/widgets/global_bottombar.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_storage/firebase_storage.dart';
+import 'package:flutter_swipe_button/flutter_swipe_button.dart';
+import 'package:shimmer/shimmer.dart';
+
 
 class DetailPage extends StatelessWidget {
   const DetailPage({super.key, required this.docId});
@@ -183,6 +186,35 @@ class DetailPage extends StatelessWidget {
                     },
                   ),
                 ],
+              ),
+              SwipeButton.expand(
+                width: 300,
+                thumb: Align(
+                  alignment: Alignment.centerRight,
+                  child: Icon(
+                    IconData(0xe5f2, fontFamily: 'MaterialIcons'),
+                    size: 53,
+                    color: Colors.white,
+                  ),
+                ),
+                activeThumbColor: Colors.blue,
+                activeTrackColor: Colors.blue,
+                onSwipe: () { 
+                  Navigator.pushReplacementNamed(context, '/activities');
+                },
+                child: Shimmer.fromColors(
+                  baseColor: Colors.white,
+                  highlightColor: Colors.lightBlue,
+                  child: Text(
+                    '참여하기',
+                    textAlign: TextAlign.center,
+                    style: TextStyle(
+                      fontSize: 35.0,
+                      fontWeight:
+                      FontWeight.bold,
+                    ),
+                  ),
+                ),
               ),
             ],
           );
