@@ -167,22 +167,29 @@ class DetailPage extends StatelessWidget {
                 activeThumbColor: Colors.blue,
                 activeTrackColor: Colors.blue,
                 onSwipe: () async {
-                  if (!isParticipant) {
+                  if (isParticipant) {
+                    // 떠나기: 리스트에서 제거
+                    await docRef.update({
+                      'invited_friends': FieldValue.arrayRemove([currentUserName])
+                    });
+                  } else {
+                    // 참여하기: 리스트에 추가
                     await docRef.update({
                       'invited_friends': FieldValue.arrayUnion([currentUserName])
                     });
-
-                    Navigator.pushReplacement(
-                      context,
-                      MaterialPageRoute(builder: (context) => DetailPage(docId: docId)),
-                    );
                   }
+
+                  // 화면 새로고침
+                  Navigator.pushReplacement(
+                    context,
+                    MaterialPageRoute(builder: (context) => DetailPage(docId: docId)),
+                  );
                 },
                 child: Shimmer.fromColors(
                   baseColor: Colors.white,
                   highlightColor: Colors.lightBlue,
                   child: Text(
-                    isParticipant ? '참여 완료' : '참여하기',
+                    isParticipant ? '떠나기' : '참여하기',
                     textAlign: TextAlign.center,
                     style: const TextStyle(fontSize: 35.0, fontWeight: FontWeight.bold),
                   ),
