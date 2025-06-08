@@ -8,9 +8,10 @@ class LoginPage extends StatelessWidget {
 
   Future<void> signInWithGoogle(BuildContext context) async {
     try {
-      final googleSignIn = GoogleSignIn(
-        clientId: '852353724402-daa0lne1qv37qsbe4ea57e42da5bte3t.apps.googleusercontent.com',
-      );
+      final googleSignIn = GoogleSignIn();
+      // final googleSignIn = GoogleSignIn(
+      //   clientId: '852353724402-daa0lne1qv37qsbe4ea57e42da5bte3t.apps.googleusercontent.com',
+      // );
 
       final googleUser = await googleSignIn.signIn();
       if (googleUser == null) return;
@@ -21,7 +22,9 @@ class LoginPage extends StatelessWidget {
         idToken: googleAuth.idToken,
       );
 
-      final userCredential = await FirebaseAuth.instance.signInWithCredential(credential);
+      final userCredential = await FirebaseAuth.instance.signInWithCredential(
+        credential,
+      );
       final user = userCredential.user;
 
       if (user != null) {
@@ -46,9 +49,9 @@ class LoginPage extends StatelessWidget {
   }
 
   void _showError(BuildContext context, String message) {
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(content: Text(message)),
-    );
+    ScaffoldMessenger.of(
+      context,
+    ).showSnackBar(SnackBar(content: Text(message)));
   }
 
   @override
@@ -58,14 +61,17 @@ class LoginPage extends StatelessWidget {
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            Image.asset("DOST-logo.png", width: 200, height: 200),
+            // Image.asset("DOST-logo.png", width: 200, height: 200),
             const SizedBox(height: 40),
             ElevatedButton(
               onPressed: () => signInWithGoogle(context),
               style: ElevatedButton.styleFrom(
                 backgroundColor: Colors.white,
                 foregroundColor: Colors.black,
-                padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 20),
+                padding: const EdgeInsets.symmetric(
+                  vertical: 12,
+                  horizontal: 20,
+                ),
                 shape: RoundedRectangleBorder(
                   borderRadius: BorderRadius.circular(8),
                   side: const BorderSide(color: Colors.grey),
@@ -75,7 +81,7 @@ class LoginPage extends StatelessWidget {
               child: Row(
                 mainAxisSize: MainAxisSize.min,
                 children: [
-                  Image.asset('google.png', height: 24),
+                  // Image.asset('google.png', height: 24),
                   const SizedBox(width: 10),
                   const Text('Google로 로그인'),
                 ],
