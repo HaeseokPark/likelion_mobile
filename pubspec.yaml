@@ -39,6 +39,7 @@ dependencies:
   cached_network_image: ^3.4.1
   shimmer: ^3.0.0
   flutter_swipe_button: ^2.1.1+1
+  google_maps_flutter: ^2.7.0 
 
 
 dev_dependencies:
