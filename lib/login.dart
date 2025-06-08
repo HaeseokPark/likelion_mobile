@@ -61,7 +61,9 @@ class LoginPage extends StatelessWidget {
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            // Image.asset("DOST-logo.png", width: 200, height: 200),
+            Image.asset('assets/images/DOST-logo.png', width: 200, height: 200, errorBuilder: (context, error, stackTrace) {
+              return Text('이미지 로드 실패: $error');
+            }),
             const SizedBox(height: 40),
             ElevatedButton(
               onPressed: () => signInWithGoogle(context),
@@ -81,7 +83,9 @@ class LoginPage extends StatelessWidget {
               child: Row(
                 mainAxisSize: MainAxisSize.min,
                 children: [
-                  // Image.asset('google.png', height: 24),
+                  Image.asset('assets/images/google.png', width: 24, height: 24, errorBuilder: (context, error, stackTrace) {
+                    return Text('이미지 로드 실패: $error');
+                  }),
                   const SizedBox(width: 10),
                   const Text('Google로 로그인'),
                 ],

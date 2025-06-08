@@ -1,7 +1,6 @@
 import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/material.dart';
 import 'package:likelion/activities.dart';
-import 'package:likelion/detail.dart';
 import 'package:likelion/home.dart';
 import 'package:likelion/mypage.dart';
 import 'package:likelion/userlist.dart';
@@ -14,7 +13,7 @@ import 'calendar.dart';
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
   await Firebase.initializeApp(options: DefaultFirebaseOptions.currentPlatform);
-  runApp(const MyApp());
+  runApp(MyApp());
 }
 
 class MyApp extends StatelessWidget {
