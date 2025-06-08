@@ -3,6 +3,8 @@ import 'package:likelion/widgets/date_formatter.dart';
 import 'package:likelion/widgets/global_appbar.dart';
 import 'package:likelion/widgets/global_bottombar.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:flutter_swipe_button/flutter_swipe_button.dart';
+import 'package:shimmer/shimmer.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:firebase_storage/firebase_storage.dart';
 import 'package:flutter_swipe_button/flutter_swipe_button.dart';
@@ -156,8 +158,7 @@ class DetailPage extends StatelessWidget {
                     ? '• 모집 인원\n  ${data['capacity']}명'
                     : '• 모집 인원\n  [미정]',
               ),
-              const SizedBox(height: 8),
-              Text('• 조건\n  ${data['condition'] ?? '[없음]'}'),
+              
               const SizedBox(height: 30),
               Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
@@ -192,31 +193,24 @@ class DetailPage extends StatelessWidget {
                 activeThumbColor: Colors.blue,
                 activeTrackColor: Colors.blue,
                 onSwipe: () async {
-                  if (isParticipant) {
-                    // 떠나기: 리스트에서 제거
-                    await docRef.update({
-                      'invited_friends': FieldValue.arrayRemove([currentUserName])
-                    });
-                  } else {
-                    // 참여하기: 리스트에 추가
+                  if (!isParticipant) {
                     await docRef.update({
                       'invited_friends': FieldValue.arrayUnion([
                         currentUserName,
                       ]),
                     });
-                  }
 
-                  // 화면 새로고침
-                  Navigator.pushReplacement(
-                    context,
-                    MaterialPageRoute(builder: (context) => DetailPage(docId: docId)),
-                  );
+                    Navigator.pushReplacement(
+                      context,
+                      MaterialPageRoute(builder: (context) => DetailPage(docId: docId)),
+                    );
+                  }
                 },
                 child: Shimmer.fromColors(
                   baseColor: Colors.white,
                   highlightColor: Colors.lightBlue,
                   child: Text(
-                    isParticipant ? '떠나기' : '참여하기',
+                    isParticipant ? '참여 완료' : '참여하기',
                     textAlign: TextAlign.center,
                     style: const TextStyle(
                       fontSize: 35.0,
