@@ -76,8 +76,7 @@ class _HomePageState extends State<HomePage> {
                         String imageUrl = data['imageUrl'] ?? '';
 
                         return Card(
-                          clipBehavior:
-                              Clip.antiAlias, 
+                          clipBehavior: Clip.antiAlias,
                           shape: RoundedRectangleBorder(
                             borderRadius: BorderRadius.circular(12),
                           ),
@@ -126,7 +125,7 @@ class _HomePageState extends State<HomePage> {
                                             },
                                           )
                                           : Image.asset(
-                                            'assets/DOST-logo.png',
+                                            'assets/images/DOST-logo.png',
                                             fit: BoxFit.cover,
                                           ),
                                 ),

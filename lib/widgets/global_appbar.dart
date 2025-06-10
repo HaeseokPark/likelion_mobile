@@ -13,7 +13,7 @@ class GlobalAppBar extends StatelessWidget implements PreferredSizeWidget {
       backgroundColor: Colors.blue,
       centerTitle: true,
       leading: IconButton(
-        icon: Image.asset('assets/DOST-logo.png'),
+        icon: Image.asset('assets/images/DOST-logo.png'),
         onPressed: () {
           Navigator.push(
             context,
@@ -26,7 +26,10 @@ class GlobalAppBar extends StatelessWidget implements PreferredSizeWidget {
         IconButton(
           icon: Icon(Icons.account_circle_outlined),
           onPressed: () {
-            Navigator.push(context,MaterialPageRoute(builder: (context) => MyPage()));
+            Navigator.push(
+              context,
+              MaterialPageRoute(builder: (context) => MyPage()),
+            );
           },
         ),
       ],

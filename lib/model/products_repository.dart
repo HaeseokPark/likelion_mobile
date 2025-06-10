@@ -10,7 +10,7 @@ class MeetingsRepository {
         title: 'Flutter Study Group',
         time: '2025-05-30 19:00',
         peopleCount: 5,
-        imagePath: "assets/DOST-logo.png",
+        imagePath: "assets/images/DOST-logo.png",
       ),
       Meeting(
         id: 1,
@@ -19,7 +19,7 @@ class MeetingsRepository {
         title: 'Weekend Game Night',
         time: '2025-05-31 20:00',
         peopleCount: 4,
-        imagePath: "assets/DOST-logo.png",
+        imagePath: "assets/images/DOST-logo.png",
       ),
       Meeting(
         id: 2,
@@ -28,7 +28,7 @@ class MeetingsRepository {
         title: 'Lunch at Korean BBQ',
         time: '2025-06-01 12:00',
         peopleCount: 6,
-        imagePath: "assets/DOST-logo.png",
+        imagePath: "assets/images/DOST-logo.png",
       ),
       Meeting(
         id: 3,
@@ -37,7 +37,7 @@ class MeetingsRepository {
         title: 'Sunday Morning Soccer',
         time: '2025-06-02 08:00',
         peopleCount: 10,
-        imagePath: "assets/DOST-logo.png",
+        imagePath: "assets/images/DOST-logo.png",
       ),
     ];
     return allMeetings.toList();

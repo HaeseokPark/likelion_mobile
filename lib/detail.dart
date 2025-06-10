@@ -74,7 +74,7 @@ class DetailPage extends StatelessWidget {
                                 },
                               )
                               : Image.asset(
-                                'assets/DOST-logo.png',
+                                "assets/images/DOST-logo.png",
                                 fit: BoxFit.cover,
                               ),
                     ),
