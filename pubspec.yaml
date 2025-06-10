@@ -39,7 +39,9 @@ dependencies:
   cached_network_image: ^3.4.1
   shimmer: ^3.0.0
   flutter_swipe_button: ^2.1.1+1
-  google_maps_flutter: ^2.7.0 
+  google_maps_flutter: ^2.5.0       # 지도 위젯
+  geolocator: ^11.0.0               # 현재 위치 가져오기
+  geocoding: ^3.0.0                 # 좌표 → 주소 역 ge코딩
 
 
 dev_dependencies:
