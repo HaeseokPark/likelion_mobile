@@ -1,3 +1,7 @@
+// 필요한 패키지 추가 필요:
+// google_maps_flutter: ^2.5.0
+// geolocator: ^11.0.0
+
 import 'dart:io';
 
 import 'package:cloud_firestore/cloud_firestore.dart';
@@ -5,6 +9,8 @@ import 'package:firebase_core/firebase_core.dart';
 import 'package:firebase_storage/firebase_storage.dart';
 import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
+import 'package:google_maps_flutter/google_maps_flutter.dart';
+import 'package:geolocator/geolocator.dart';
 
 import 'firebase_options.dart';
 import 'userlist.dart';
@@ -17,22 +23,21 @@ class RegisterMeetingPage extends StatefulWidget {
 class _RegisterMeetingPageState extends State<RegisterMeetingPage> {
   final _formKey = GlobalKey<FormState>();
 
-  // ── 컨트롤러 ──────────────────────────────────────────────────
   final _titleController = TextEditingController();
   final _contentController = TextEditingController();
-  final _locationController = TextEditingController();
   final _capacityController = TextEditingController();
 
-  // ── 선택 값들 ──────────────────────────────────────────────────
   DateTime? _selectedDate;
   TimeOfDay? _startTime;
   TimeOfDay? _endTime;
   File? _selectedImage;
   List<Map<String, String>> _invitedFriends = [];
 
+  String? _locationDisplay;
+  LatLng? _pickedLocation;
+
   bool _isLoading = false;
 
-  // “등록하기” 전용 스타일
   final ButtonStyle _primaryButtonStyle = ElevatedButton.styleFrom(
     backgroundColor: Colors.blue,
     foregroundColor: Colors.white,
@@ -47,7 +52,6 @@ class _RegisterMeetingPageState extends State<RegisterMeetingPage> {
     Firebase.initializeApp(options: DefaultFirebaseOptions.currentPlatform);
   }
 
-  // ── 이미지 선택 / 업로드 ───────────────────────────────────────
   Future<void> _selectImage() async {
     final picked = await ImagePicker().pickImage(source: ImageSource.gallery);
     if (picked != null) setState(() => _selectedImage = File(picked.path));
@@ -56,8 +60,7 @@ class _RegisterMeetingPageState extends State<RegisterMeetingPage> {
   Future<String?> _uploadImage(File image) async {
     try {
       final fileName = DateTime.now().millisecondsSinceEpoch.toString();
-      final ref =
-          FirebaseStorage.instance.ref().child('meeting_images/$fileName');
+      final ref = FirebaseStorage.instance.ref().child('meeting_images/$fileName');
       await ref.putFile(image, SettableMetadata(contentType: 'image/jpeg'));
       return await ref.getDownloadURL();
     } catch (e) {
@@ -66,14 +69,29 @@ class _RegisterMeetingPageState extends State<RegisterMeetingPage> {
     }
   }
 
-  // ── 모임 등록 ─────────────────────────────────────────────────
+  Future<void> _pickLocationOnMap() async {
+    final LatLng? result = await Navigator.push(
+      context,
+      MaterialPageRoute(builder: (_) => MapLocationPickerPage()),
+    );
+
+    if (result != null) {
+      setState(() {
+        _pickedLocation = result;
+        _locationDisplay = '${result.latitude}, ${result.longitude}';
+      });
+    }
+  }
+
   Future<void> _registerMeeting() async {
     if (!_formKey.currentState!.validate() ||
         _selectedDate == null ||
         _startTime == null ||
-        _endTime == null) {
-      ScaffoldMessenger.of(context)
-          .showSnackBar(const SnackBar(content: Text('모든 필드를 입력해주세요.')));
+        _endTime == null ||
+        _pickedLocation == null) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('모든 필드를 입력해주세요.')),
+      );
       return;
     }
 
@@ -85,41 +103,39 @@ class _RegisterMeetingPageState extends State<RegisterMeetingPage> {
 
       await FirebaseFirestore.instance.collection('meetings').add({
         'title': _titleController.text.trim(),
-        'location': _locationController.text.trim(),
+        'location': _locationDisplay,
+        'lat': _pickedLocation!.latitude,
+        'lng': _pickedLocation!.longitude,
         'capacity': int.parse(_capacityController.text),
         'date': _selectedDate!.toIso8601String(),
         'start_time': _startTime!.format(context),
         'end_time': _endTime!.format(context),
         'content': _contentController.text.trim(),
-        'invited_friends':
-            _invitedFriends.map((f) => f['displayName'] ?? '').toList(),
+        'invited_friends': _invitedFriends.map((f) => f['displayName'] ?? '').toList(),
         'imageUrl': imageUrl ?? '',
         'created_at': Timestamp.now(),
       });
 
       if (!mounted) return;
-      ScaffoldMessenger.of(context)
-          .showSnackBar(const SnackBar(content: Text('모임이 등록되었습니다!')));
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('모임이 등록되었습니다!')),
+      );
       Navigator.pop(context);
     } catch (e) {
       print('등록 실패: $e');
       if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('등록 중 오류 발생: ${e.toString()}')));
+        SnackBar(content: Text('등록 중 오류 발생: ${e.toString()}')),
+      );
     } finally {
       if (mounted) setState(() => _isLoading = false);
     }
   }
 
-  // ── UI ───────────────────────────────────────────────────────
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
-        title: const Text('모임 등록'),
-        backgroundColor: Colors.blueAccent,
-        centerTitle: true,
-      ),
+      appBar: AppBar(title: const Text('모임 등록'), centerTitle: true),
       body: _isLoading
           ? const Center(child: CircularProgressIndicator())
           : SingleChildScrollView(
@@ -129,16 +145,20 @@ class _RegisterMeetingPageState extends State<RegisterMeetingPage> {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    // 제목
                     _buildSectionLabel('제목'),
                     _buildTextField(_titleController, '모임 제목을 입력하세요'),
 
-                    // 장소
                     const SizedBox(height: 20),
                     _buildSectionLabel('장소'),
-                    _buildTextField(_locationController, '장소를 입력하세요'),
+                    Card(
+                      child: ListTile(
+                        leading: Icon(Icons.place),
+                        title: Text(_locationDisplay ?? '지도를 열어 장소를 선택하세요'),
+                        trailing: Icon(Icons.map),
+                        onTap: _pickLocationOnMap,
+                      ),
+                    ),
 
-                    // 모집 인원
                     const SizedBox(height: 20),
                     _buildSectionLabel('모집 인원'),
                     _buildTextField(
@@ -153,14 +173,11 @@ class _RegisterMeetingPageState extends State<RegisterMeetingPage> {
                       },
                     ),
 
-                    // 날짜·시간
                     const SizedBox(height: 20),
                     _buildSectionLabel('날짜 및 시간'),
                     _buildDateTile(
                       '날짜 선택',
-                      _selectedDate == null
-                          ? '선택 안됨'
-                          : _selectedDate!.toLocal().toString().split(' ').first,
+                      _selectedDate == null ? '선택 안됨' : _selectedDate!.toLocal().toString().split(' ').first,
                       Icons.calendar_today,
                       () => _selectDate(context),
                     ),
@@ -177,13 +194,10 @@ class _RegisterMeetingPageState extends State<RegisterMeetingPage> {
                       () => _selectTime(context, false),
                     ),
 
-                    // 내용
                     const SizedBox(height: 20),
                     _buildSectionLabel('내용'),
-                    _buildTextField(_contentController, '내용을 입력하세요',
-                        maxLines: 3),
+                    _buildTextField(_contentController, '내용을 입력하세요', maxLines: 3),
 
-                    // 이미지
                     const SizedBox(height: 20),
                     _buildSectionLabel('이미지'),
                     _selectedImage != null
@@ -197,7 +211,6 @@ class _RegisterMeetingPageState extends State<RegisterMeetingPage> {
                             label: const Text('이미지 선택'),
                           ),
 
-                    // 친구 초대
                     const SizedBox(height: 20),
                     _buildSectionLabel('친구 초대'),
                     ElevatedButton(
@@ -205,30 +218,22 @@ class _RegisterMeetingPageState extends State<RegisterMeetingPage> {
                       style: ElevatedButton.styleFrom(
                         backgroundColor: Colors.white,
                         foregroundColor: Colors.black,
-                        padding: const EdgeInsets.symmetric(
-                            horizontal: 16, vertical: 12),
-                        shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(12)),
+                        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+                        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
                       ),
                       child: const Text('친구 초대하기'),
                     ),
                     if (_invitedFriends.isNotEmpty)
-                      Padding(
-                        padding: const EdgeInsets.only(top: 8.0),
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: _invitedFriends
-                              .map(
-                                (f) => ListTile(
+                      Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: _invitedFriends
+                            .map((f) => ListTile(
                                   leading: const Icon(Icons.person),
                                   title: Text(f['displayName'] ?? '이름 없음'),
-                                ),
-                              )
-                              .toList(),
-                        ),
+                                ))
+                            .toList(),
                       ),
 
-                    // 등록 버튼 (파랑·하얀)
                     const SizedBox(height: 30),
                     Center(
                       child: ElevatedButton(
@@ -244,7 +249,6 @@ class _RegisterMeetingPageState extends State<RegisterMeetingPage> {
     );
   }
 
-  // ── 재사용 위젯 ────────────────────────────────────────────────
   Widget _buildSectionLabel(String text) => Text(
         text,
         style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
@@ -261,19 +265,16 @@ class _RegisterMeetingPageState extends State<RegisterMeetingPage> {
       controller: controller,
       maxLines: maxLines,
       keyboardType: keyboardType,
-      validator:
-          validator ?? (v) => v == null || v.isEmpty ? '필수 항목입니다' : null,
+      validator: validator ?? (v) => v == null || v.isEmpty ? '필수 항목입니다' : null,
       decoration: InputDecoration(
         hintText: hint,
         border: OutlineInputBorder(borderRadius: BorderRadius.circular(10)),
-        contentPadding:
-            const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+        contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
       ),
     );
   }
 
-  Widget _buildDateTile(
-      String label, String value, IconData icon, VoidCallback onTap) {
+  Widget _buildDateTile(String label, String value, IconData icon, VoidCallback onTap) {
     return Card(
       margin: const EdgeInsets.symmetric(vertical: 6),
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
@@ -287,7 +288,6 @@ class _RegisterMeetingPageState extends State<RegisterMeetingPage> {
     );
   }
 
-  // ── 친구 초대 ─────────────────────────────────────────────────
   void _inviteFriends() async {
     final selectedFriends = await Navigator.push(
       context,
@@ -308,7 +308,6 @@ class _RegisterMeetingPageState extends State<RegisterMeetingPage> {
     }
   }
 
-  // ── 날짜 / 시간 선택 ─────────────────────────────────────────
   Future<void> _selectDate(BuildContext context) async {
     final picked = await showDatePicker(
       context: context,
@@ -320,20 +319,74 @@ class _RegisterMeetingPageState extends State<RegisterMeetingPage> {
   }
 
   Future<void> _selectTime(BuildContext context, bool isStart) async {
-    final picked =
-        await showTimePicker(context: context, initialTime: TimeOfDay.now());
+    final picked = await showTimePicker(context: context, initialTime: TimeOfDay.now());
     if (picked != null) {
       setState(() => isStart ? _startTime = picked : _endTime = picked);
     }
   }
 
-  // ── 컨트롤러 해제 ─────────────────────────────────────────────
   @override
   void dispose() {
     _titleController.dispose();
     _contentController.dispose();
-    _locationController.dispose();
     _capacityController.dispose();
     super.dispose();
+  }
+}
+
+class MapLocationPickerPage extends StatefulWidget {
+  @override
+  _MapLocationPickerPageState createState() => _MapLocationPickerPageState();
+}
+
+class _MapLocationPickerPageState extends State<MapLocationPickerPage> {
+  LatLng? _selectedPosition;
+
+  @override
+  void initState() {
+    super.initState();
+    _determinePosition();
+  }
+
+  Future<void> _determinePosition() async {
+    LocationPermission permission = await Geolocator.checkPermission();
+    if (permission == LocationPermission.denied || permission == LocationPermission.deniedForever) {
+      permission = await Geolocator.requestPermission();
+    }
+
+    final pos = await Geolocator.getCurrentPosition();
+    setState(() {
+      _selectedPosition = LatLng(pos.latitude, pos.longitude);
+    });
+  }
+
+  void _onMapTap(LatLng position) {
+    setState(() {
+      _selectedPosition = position;
+    });
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      appBar: AppBar(title: const Text('위치 선택')),
+      body: _selectedPosition == null
+          ? const Center(child: CircularProgressIndicator())
+          : GoogleMap(
+              initialCameraPosition: CameraPosition(
+                target: _selectedPosition!,
+                zoom: 15,
+              ),
+              markers: {
+                Marker(markerId: const MarkerId('picked'), position: _selectedPosition!)
+              },
+              onTap: _onMapTap,
+            ),
+      floatingActionButton: FloatingActionButton.extended(
+        onPressed: () => Navigator.pop(context, _selectedPosition),
+        label: const Text('위치 선택 완료'),
+        icon: const Icon(Icons.check),
+      ),
+    );
   }
 }
