@@ -1,8 +1,6 @@
-// lib/message/services/auth/auth_service.dart
-
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
-import 'package:google_sign_in/google_sign_in.dart'; // GoogleSignIn 임포트 추가
+import 'package:google_sign_in/google_sign_in.dart'; 
 
 class AuthServices {
   final FirebaseAuth user;
@@ -34,12 +32,8 @@ class AuthServices {
     }
   }
 
-  // Google 로그인 메서드 추가
   Future<UserCredential> signInWithGoogle() async {
     try {
-      // clientId를 명시적으로 설정 (웹 환경에서 특히 중요)
-      // 실제 앱에서는 이 clientId를 Firebase 콘솔에서 얻은 웹 클라이언트 ID로 교체해야 합니다.
-      // 예시: GoogleSignIn(clientId: 'YOUR_WEB_CLIENT_ID.apps.googleusercontent.com');
       final googleSignIn = GoogleSignIn(
         clientId: '852353724402-daa0lne1qv37qsbe4ea57e42da5bte3t.apps.googleusercontent.com', // login.dart에 있던 예시 clientId 사용
       );
@@ -100,7 +94,7 @@ class AuthServices {
           "uid": userCredential.user!.uid,
           "email": email,
         },
-        SetOptions(merge: true), // 기존 데이터와 병합
+        SetOptions(merge: true), 
       );
 
       return userCredential;
