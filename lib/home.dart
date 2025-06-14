@@ -20,15 +20,7 @@ class _HomePageState extends State<HomePage> {
   String _currentSort = '최신순';
 
   Stream<QuerySnapshot> _getMeetingsStream() {
-    Query query = FirebaseFirestore.instance.collection('meetings');
-
-    if (_currentSort == '최신순') {
-      query = query.orderBy('created_at', descending: true);
-    } else {
-      query = query.orderBy('created_at', descending: false);
-    }
-
-    return query.snapshots();
+    return FirebaseFirestore.instance.collection('meetings').snapshots();
   }
 
   bool isPastMeeting(String dateStr, String startTimeStr) {
@@ -53,7 +45,6 @@ class _HomePageState extends State<HomePage> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: GlobalAppBar(title: 'DO\'ST'),
-      // drawer: MyDrawer(),
       body: Column(
         children: [
           SizedBox(height: 20),
@@ -82,6 +73,24 @@ class _HomePageState extends State<HomePage> {
                   return Center(child: Text('등록된 모임이 없습니다.'));
                 }
 
+                docs.sort((a, b) {
+                  try {
+                    final aDate = DateTime.parse(a['date']);
+                    final aTime = DateFormat.jm().parseLoose(a['start_time']);
+                    final aStart = DateTime(aDate.year, aDate.month, aDate.day, aTime.hour, aTime.minute);
+
+                    final bDate = DateTime.parse(b['date']);
+                    final bTime = DateFormat.jm().parseLoose(b['start_time']);
+                    final bStart = DateTime(bDate.year, bDate.month, bDate.day, bTime.hour, bTime.minute);
+
+                    return _currentSort == '최신순'
+                        ? bStart.compareTo(aStart)
+                        : aStart.compareTo(bStart);
+                  } catch (e) {
+                    return 0;
+                  }
+                });
+
                 return GridView.count(
                   crossAxisCount: numberOfCardsPerLine,
                   padding: const EdgeInsets.all(16.0),
@@ -108,7 +117,7 @@ class _HomePageState extends State<HomePage> {
                     } catch (e) {
                       meetingStart = null;
                     }
-                    bool hasStarted =meetingStart != null && meetingStart.isBefore(DateTime.now());
+                    bool hasStarted = meetingStart != null && meetingStart.isBefore(DateTime.now());
 
                     return Card(
                       color: hasStarted ? Color(0xFFE0E0E0) : Color(0xFFDCEEFB),
