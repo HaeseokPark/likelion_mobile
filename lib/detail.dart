@@ -199,18 +199,25 @@ class DetailPage extends StatelessWidget {
                   activeThumbColor: Colors.blue,
                   activeTrackColor: Colors.blue,
                   onSwipe: () async {
-                    if (!isParticipant) {
+                    if (isParticipant) {
+                      await docRef.update({
+                        'invited_friends': FieldValue.arrayRemove([
+                          currentUserName,
+                        ]),
+                      });
+                    } else {
                       await docRef.update({
                         'invited_friends': FieldValue.arrayUnion([
                           currentUserName,
                         ]),
                       });
-                      Navigator.pushReplacement(
-                        context,
-                        MaterialPageRoute(
-                            builder: (context) => DetailPage(docId: docId)),
-                      );
                     }
+                    Navigator.pushReplacement(
+                      context,
+                      MaterialPageRoute(
+                        builder: (context) => DetailPage(docId: docId),
+                      ),
+                    );
                   },
                   child: Shimmer.fromColors(
                     baseColor: Colors.white,

@@ -6,6 +6,7 @@ import 'package:likelion/widgets/date_formatter.dart';
 import 'package:likelion/widgets/global_appbar.dart';
 import 'package:likelion/widgets/global_bottombar.dart';
 import 'package:likelion/widgets/sort_filter.dart';
+import 'package:intl/intl.dart';
 
 class HomePage extends StatefulWidget {
   const HomePage({super.key});
@@ -28,6 +29,24 @@ class _HomePageState extends State<HomePage> {
     }
 
     return query.snapshots();
+  }
+
+  bool isPastMeeting(String dateStr, String startTimeStr) {
+    try {
+      final datePart = DateTime.parse(dateStr);
+      final timePart = DateFormat.jm('en_US').parse(startTimeStr);
+      final combined = DateTime(
+        datePart.year,
+        datePart.month,
+        datePart.day,
+        timePart.hour,
+        timePart.minute,
+      );
+      return combined.isBefore(DateTime.now());
+    } catch (e) {
+      print("Date parse error: $e");
+      return false;
+    }
   }
 
   @override
@@ -66,123 +85,101 @@ class _HomePageState extends State<HomePage> {
                 return GridView.count(
                   crossAxisCount: numberOfCardsPerLine,
                   padding: const EdgeInsets.all(16.0),
-                  children:
-                      docs.map((doc) {
-                        var data = doc.data() as Map<String, dynamic>;
-                        String title = data['title'] ?? '제목 없음';
-                        String date = data['date'] ?? '';
-                        String startTime = data['start_time'] ?? '';
-                        String endTime = data['end_time'] ?? '';
-                        String content = data['content'] ?? '';
-                        String invitedFriend = data['invited_friend'] ?? '';
-                        String imageUrl = data['imageUrl'] ?? '';
+                  children: docs.map((doc) {
+                    var data = doc.data() as Map<String, dynamic>;
+                    String title = data['title'] ?? '제목 없음';
+                    String date = data['date'] ?? '';
+                    String startTime = data['start_time'] ?? '';
+                    String endTime = data['end_time'] ?? '';
+                    String content = data['content'] ?? '';
+                    String invitedFriend = data['invited_friend'] ?? '';
+                    String imageUrl = data['imageUrl'] ?? '';
+                    DateTime? meetingStart;
+                    try {
+                      final baseDate = DateTime.parse(date);
+                      final time = DateFormat.jm().parseLoose(startTime);
+                      meetingStart = DateTime(
+                        baseDate.year,
+                        baseDate.month,
+                        baseDate.day,
+                        time.hour,
+                        time.minute,
+                      );
+                    } catch (e) {
+                      meetingStart = null;
+                    }
+                    bool hasStarted =meetingStart != null && meetingStart.isBefore(DateTime.now());
 
-                        return Card(
-                          clipBehavior: Clip.antiAlias,
-                          shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(12),
-                          ),
-                          child: InkWell(
-                            onTap: () {
-                              Navigator.push(
-                                context,
-                                MaterialPageRoute(
-                                  builder:
-                                      (context) => DetailPage(docId: doc.id),
-                                ),
-                              );
-                            },
-                            child: Column(
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              children: [
-                                // 이미지 영역 (카드 상단과 꼭 맞게)
-                                SizedBox(
-                                  height: 90,
-                                  width: double.infinity,
-                                  child:
-                                      imageUrl.isNotEmpty &&
-                                              imageUrl.startsWith('http')
-                                          ? Image.network(
-                                            imageUrl,
-                                            fit: BoxFit.cover,
-                                            errorBuilder: (
-                                              context,
-                                              error,
-                                              stackTrace,
-                                            ) {
-                                              print('Image load error: $error');
-                                              return Icon(Icons.broken_image);
-                                            },
-                                            loadingBuilder: (
-                                              context,
-                                              child,
-                                              loadingProgress,
-                                            ) {
-                                              if (loadingProgress == null) {
-                                                return child;
-                                              }
-                                              return Center(
-                                                child:
-                                                    CircularProgressIndicator(),
-                                              );
-                                            },
-                                          )
-                                          : Image.asset(
-                                            'assets/images/DOST-logo.png',
-                                            fit: BoxFit.cover,
-                                          ),
-                                ),
-                                Padding(
-                                  padding: const EdgeInsets.all(8.0),
-                                  child: Column(
-                                    crossAxisAlignment:
-                                        CrossAxisAlignment.start,
-                                    children: [
-                                      Text(
-                                        title,
-                                        style:
-                                            Theme.of(
-                                              context,
-                                            ).textTheme.titleMedium,
-                                      ),
-                                      SizedBox(height: 4),
-                                      Text(
-                                        formatMeetingDate(
-                                          date,
-                                          startTime,
-                                          endTime,
-                                        ),
-                                        style:
-                                            Theme.of(
-                                              context,
-                                            ).textTheme.bodySmall,
-                                      ),
-                                      SizedBox(height: 7),
-                                      Text(
-                                        content,
-                                        maxLines: 2,
-                                        overflow: TextOverflow.ellipsis,
-                                        style:
-                                            Theme.of(
-                                              context,
-                                            ).textTheme.bodyMedium,
-                                      ),
-                                      // SizedBox(height: 4),
-                                      // Text(
-                                      //   '초대: $invitedFriend',
-                                      //   style:
-                                      //       Theme.of(
-                                      //         context,
-                                      //       ).textTheme.bodySmall,
-                                      // ),
-                                    ],
-                                  ),
-                                ),
-                              ],
+                    return Card(
+                      color: hasStarted ? Color(0xFFE0E0E0) : Color(0xFFDCEEFB),
+                      clipBehavior: Clip.antiAlias,
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(12),
+                      ),
+                      child: InkWell(
+                        onTap: () {
+                          Navigator.push(
+                            context,
+                            MaterialPageRoute(
+                              builder: (context) => DetailPage(docId: doc.id),
                             ),
-                          ),
-                        );
-                      }).toList(),
+                          );
+                        },
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            SizedBox(
+                              height: 90,
+                              width: double.infinity,
+                              child: imageUrl.isNotEmpty && imageUrl.startsWith('http')
+                                  ? Image.network(
+                                      imageUrl,
+                                      fit: BoxFit.cover,
+                                      errorBuilder: (context, error, stackTrace) {
+                                        print('Image load error: $error');
+                                        return Icon(Icons.broken_image);
+                                      },
+                                      loadingBuilder: (context, child, loadingProgress) {
+                                        if (loadingProgress == null) {
+                                          return child;
+                                        }
+                                        return Center(child: CircularProgressIndicator());
+                                      },
+                                    )
+                                  : Image.asset(
+                                      'assets/images/DOST-logo.png',
+                                      fit: BoxFit.cover,
+                                    ),
+                            ),
+                            Padding(
+                              padding: const EdgeInsets.all(8.0),
+                              child: Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  Text(
+                                    title,
+                                    style: Theme.of(context).textTheme.titleMedium,
+                                  ),
+                                  SizedBox(height: 4),
+                                  Text(
+                                    formatMeetingDate(date, startTime, endTime),
+                                    style: Theme.of(context).textTheme.bodySmall,
+                                  ),
+                                  SizedBox(height: 7),
+                                  Text(
+                                    content,
+                                    maxLines: 2,
+                                    overflow: TextOverflow.ellipsis,
+                                    style: Theme.of(context).textTheme.bodyMedium,
+                                  ),
+                                ],
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                    );
+                  }).toList(),
                 );
               },
             ),
