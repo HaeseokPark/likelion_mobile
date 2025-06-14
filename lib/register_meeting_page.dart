@@ -1,7 +1,3 @@
-// 필요한 패키지 추가 필요:
-// google_maps_flutter: ^2.5.0
-// geolocator: ^11.0.0
-
 import 'dart:io';
 
 import 'package:cloud_firestore/cloud_firestore.dart';
@@ -9,8 +5,6 @@ import 'package:firebase_core/firebase_core.dart';
 import 'package:firebase_storage/firebase_storage.dart';
 import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
-import 'package:google_maps_flutter/google_maps_flutter.dart';
-import 'package:geolocator/geolocator.dart';
 
 import 'firebase_options.dart';
 import 'userlist.dart';
@@ -26,6 +20,7 @@ class _RegisterMeetingPageState extends State<RegisterMeetingPage> {
   final _formKey = GlobalKey<FormState>();
 
   final _titleController = TextEditingController();
+  final _locationController = TextEditingController();
   final _contentController = TextEditingController();
   final _capacityController = TextEditingController();
 
@@ -34,9 +29,6 @@ class _RegisterMeetingPageState extends State<RegisterMeetingPage> {
   TimeOfDay? _endTime;
   File? _selectedImage;
   List<Map<String, String>> _invitedFriends = [];
-
-  String? _locationDisplay;
-  LatLng? _pickedLocation;
 
   bool _isLoading = false;
 
@@ -71,26 +63,11 @@ class _RegisterMeetingPageState extends State<RegisterMeetingPage> {
     }
   }
 
-  Future<void> _pickLocationOnMap() async {
-    final LatLng? result = await Navigator.push(
-      context,
-      MaterialPageRoute(builder: (_) => MapLocationPickerPage()),
-    );
-
-    if (result != null) {
-      setState(() {
-        _pickedLocation = result;
-        _locationDisplay = '${result.latitude}, ${result.longitude}';
-      });
-    }
-  }
-
   Future<void> _registerMeeting() async {
     if (!_formKey.currentState!.validate() ||
         _selectedDate == null ||
         _startTime == null ||
-        _endTime == null ||
-        _pickedLocation == null) {
+        _endTime == null) {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(content: Text('모든 필드를 입력해주세요.')),
       );
@@ -105,9 +82,7 @@ class _RegisterMeetingPageState extends State<RegisterMeetingPage> {
 
       await FirebaseFirestore.instance.collection('meetings').add({
         'title': _titleController.text.trim(),
-        'location': _locationDisplay,
-        'lat': _pickedLocation!.latitude,
-        'lng': _pickedLocation!.longitude,
+        'location': _locationController.text.trim(),
         'capacity': int.parse(_capacityController.text),
         'date': _selectedDate!.toIso8601String(),
         'start_time': _startTime!.format(context),
@@ -152,14 +127,7 @@ class _RegisterMeetingPageState extends State<RegisterMeetingPage> {
 
                     const SizedBox(height: 20),
                     _buildSectionLabel('장소'),
-                    Card(
-                      child: ListTile(
-                        leading: Icon(Icons.place),
-                        title: Text(_locationDisplay ?? '지도를 열어 장소를 선택하세요'),
-                        trailing: Icon(Icons.map),
-                        onTap: _pickLocationOnMap,
-                      ),
-                    ),
+                    _buildTextField(_locationController, '장소를 입력하세요'),
 
                     const SizedBox(height: 20),
                     _buildSectionLabel('모집 인원'),
@@ -330,67 +298,9 @@ class _RegisterMeetingPageState extends State<RegisterMeetingPage> {
   @override
   void dispose() {
     _titleController.dispose();
+    _locationController.dispose();
     _contentController.dispose();
     _capacityController.dispose();
     super.dispose();
-  }
-}
-
-class MapLocationPickerPage extends StatefulWidget {
-  const MapLocationPickerPage({super.key});
-
-  @override
-  _MapLocationPickerPageState createState() => _MapLocationPickerPageState();
-}
-
-class _MapLocationPickerPageState extends State<MapLocationPickerPage> {
-  LatLng? _selectedPosition;
-
-  @override
-  void initState() {
-    super.initState();
-    _determinePosition();
-  }
-
-  Future<void> _determinePosition() async {
-    LocationPermission permission = await Geolocator.checkPermission();
-    if (permission == LocationPermission.denied || permission == LocationPermission.deniedForever) {
-      permission = await Geolocator.requestPermission();
-    }
-
-    final pos = await Geolocator.getCurrentPosition();
-    setState(() {
-      _selectedPosition = LatLng(pos.latitude, pos.longitude);
-    });
-  }
-
-  void _onMapTap(LatLng position) {
-    setState(() {
-      _selectedPosition = position;
-    });
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(title: const Text('위치 선택')),
-      body: _selectedPosition == null
-          ? const Center(child: CircularProgressIndicator())
-          : GoogleMap(
-              initialCameraPosition: CameraPosition(
-                target: _selectedPosition!,
-                zoom: 15,
-              ),
-              markers: {
-                Marker(markerId: const MarkerId('picked'), position: _selectedPosition!)
-              },
-              onTap: _onMapTap,
-            ),
-      floatingActionButton: FloatingActionButton.extended(
-        onPressed: () => Navigator.pop(context, _selectedPosition),
-        label: const Text('위치 선택 완료'),
-        icon: const Icon(Icons.check),
-      ),
-    );
   }
 }
