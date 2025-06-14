@@ -29,6 +29,13 @@
             {
               "client_id": "852353724402-daa0lne1qv37qsbe4ea57e42da5bte3t.apps.googleusercontent.com",
               "client_type": 3
+            },
+            {
+              "client_id": "852353724402-k33co5aqgln64oik4vdskf6p7cqvncgb.apps.googleusercontent.com",
+              "client_type": 2,
+              "ios_info": {
+                "bundle_id": "com.example.likelion"
+              }
             }
           ]
         }
