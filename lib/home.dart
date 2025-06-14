@@ -53,7 +53,7 @@ class _HomePageState extends State<HomePage> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: GlobalAppBar(title: 'DO\'ST'),
-      drawer: MyDrawer(),
+      // drawer: MyDrawer(),
       body: Column(
         children: [
           SizedBox(height: 20),

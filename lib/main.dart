@@ -24,7 +24,7 @@ class MyApp extends StatelessWidget {
   Widget build(BuildContext context) {
     return MaterialApp(
       debugShowCheckedModeBanner: false,
-      initialRoute: '/home', // 초기 라우트는 로그인
+      initialRoute: '/', // 초기 라우트는 로그인
       routes: {
         '/': (context) => const LoginPage(),
         '/login': (BuildContext context) => const LoginPage(),
