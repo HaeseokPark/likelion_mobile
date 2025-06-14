@@ -12,15 +12,15 @@ class GlobalAppBar extends StatelessWidget implements PreferredSizeWidget {
     return AppBar(
       backgroundColor: Colors.blue,
       centerTitle: true,
-      // leading: IconButton(
-      //   icon: Image.asset('assets/images/DOST-logo.png'),
-      //   onPressed: () {
-      //     Navigator.push(
-      //       context,
-      //       MaterialPageRoute(builder: (context) => HomePage()),
-      //     );
-      //   },
-      // ),
+      leading: IconButton(
+        icon: Image.asset('assets/images/DOST-logo.png'),
+        onPressed: () {
+          Navigator.push(
+            context,
+            MaterialPageRoute(builder: (context) => HomePage()),
+          );
+        },
+      ),
       title: Text(title, style: TextStyle(color: Colors.black)),
       actions: [
         IconButton(
