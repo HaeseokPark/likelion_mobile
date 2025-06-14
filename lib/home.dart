@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:likelion/detail.dart';
+import 'package:likelion/message/widgets/my_drawer.dart';
 import 'package:likelion/widgets/date_formatter.dart';
 import 'package:likelion/widgets/global_appbar.dart';
 import 'package:likelion/widgets/global_bottombar.dart';
@@ -33,6 +34,7 @@ class _HomePageState extends State<HomePage> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: GlobalAppBar(title: 'DO\'ST'),
+      drawer: MyDrawer(),
       body: Column(
         children: [
           SizedBox(height: 20),
@@ -76,8 +78,7 @@ class _HomePageState extends State<HomePage> {
                         String imageUrl = data['imageUrl'] ?? '';
 
                         return Card(
-                          clipBehavior:
-                              Clip.antiAlias, 
+                          clipBehavior: Clip.antiAlias,
                           shape: RoundedRectangleBorder(
                             borderRadius: BorderRadius.circular(12),
                           ),
@@ -117,8 +118,9 @@ class _HomePageState extends State<HomePage> {
                                               child,
                                               loadingProgress,
                                             ) {
-                                              if (loadingProgress == null)
+                                              if (loadingProgress == null) {
                                                 return child;
+                                              }
                                               return Center(
                                                 child:
                                                     CircularProgressIndicator(),
@@ -126,7 +128,7 @@ class _HomePageState extends State<HomePage> {
                                             },
                                           )
                                           : Image.asset(
-                                            'assets/DOST-logo.png',
+                                            'assets/images/DOST-logo.png',
                                             fit: BoxFit.cover,
                                           ),
                                 ),

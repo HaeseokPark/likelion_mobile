@@ -13,7 +13,7 @@ class _UserListPageState extends State<UserListPage> {
   final ScrollController _scrollController = ScrollController();
 
   List<DocumentSnapshot> _users = [];
-  Map<String, bool> _selectedUsers = {};
+  final Map<String, bool> _selectedUsers = {};
 
   @override
   void initState() {

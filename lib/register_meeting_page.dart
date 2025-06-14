@@ -16,6 +16,8 @@ import 'firebase_options.dart';
 import 'userlist.dart';
 
 class RegisterMeetingPage extends StatefulWidget {
+  const RegisterMeetingPage({super.key});
+
   @override
   _RegisterMeetingPageState createState() => _RegisterMeetingPageState();
 }
@@ -335,6 +337,8 @@ class _RegisterMeetingPageState extends State<RegisterMeetingPage> {
 }
 
 class MapLocationPickerPage extends StatefulWidget {
+  const MapLocationPickerPage({super.key});
+
   @override
   _MapLocationPickerPageState createState() => _MapLocationPickerPageState();
 }

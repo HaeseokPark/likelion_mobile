@@ -1,15 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:likelion/widgets/date_formatter.dart';
-import 'package:likelion/widgets/global_appbar.dart';
 import 'package:likelion/widgets/global_bottombar.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter_swipe_button/flutter_swipe_button.dart';
 import 'package:shimmer/shimmer.dart';
 import 'package:firebase_auth/firebase_auth.dart';
-import 'package:firebase_storage/firebase_storage.dart';
-import 'package:flutter_swipe_button/flutter_swipe_button.dart';
-import 'package:shimmer/shimmer.dart';
-
 
 class DetailPage extends StatelessWidget {
   const DetailPage({super.key, required this.docId});
@@ -56,20 +51,33 @@ class DetailPage extends StatelessWidget {
                   SizedBox(
                     width: 150,
                     height: 150,
-                    child: imageUrl.isNotEmpty && imageUrl.startsWith('http')
-                        ? Image.network(
-                            imageUrl,
-                            fit: BoxFit.cover,
-                            errorBuilder: (context, error, stackTrace) {
-                              print('Image load error: $error');
-                              return const Icon(Icons.broken_image);
-                            },
-                            loadingBuilder: (context, child, loadingProgress) {
-                              if (loadingProgress == null) return child;
-                              return const Center(child: CircularProgressIndicator());
-                            },
-                          )
-                        : Image.asset('assets/DOST-logo.png'),
+                    child: ClipRRect(
+                      borderRadius: BorderRadius.circular(20.0), // 둥글기 설정
+                      child:
+                          imageUrl.isNotEmpty && imageUrl.startsWith('http')
+                              ? Image.network(
+                                imageUrl,
+                                fit: BoxFit.cover,
+                                errorBuilder: (context, error, stackTrace) {
+                                  print('Image load error: $error');
+                                  return const Icon(Icons.broken_image);
+                                },
+                                loadingBuilder: (
+                                  context,
+                                  child,
+                                  loadingProgress,
+                                ) {
+                                  if (loadingProgress == null) return child;
+                                  return const Center(
+                                    child: CircularProgressIndicator(),
+                                  );
+                                },
+                              )
+                              : Image.asset(
+                                "assets/images/DOST-logo.png",
+                                fit: BoxFit.cover,
+                              ),
+                    ),
                   ),
                   const SizedBox(width: 20),
                   Expanded(
@@ -79,7 +87,10 @@ class DetailPage extends StatelessWidget {
                         const SizedBox(height: 25),
                         Text(
                           title,
-                          style: const TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
+                          style: const TextStyle(
+                            fontSize: 20,
+                            fontWeight: FontWeight.bold,
+                          ),
                         ),
                         const SizedBox(height: 4),
                         const Text(
@@ -92,19 +103,25 @@ class DetailPage extends StatelessWidget {
                             if (isParticipant) {
                               // 떠나기: 리스트에서 제거
                               await docRef.update({
-                                'invited_friends': FieldValue.arrayRemove([currentUserName])
+                                'invited_friends': FieldValue.arrayRemove([
+                                  currentUserName,
+                                ]),
                               });
                             } else {
                               // 참여하기: 리스트에 추가
                               await docRef.update({
-                                'invited_friends': FieldValue.arrayUnion([currentUserName])
+                                'invited_friends': FieldValue.arrayUnion([
+                                  currentUserName,
+                                ]),
                               });
                             }
 
                             // 화면 새로고침
                             Navigator.pushReplacement(
                               context,
-                              MaterialPageRoute(builder: (context) => DetailPage(docId: docId)),
+                              MaterialPageRoute(
+                                builder: (context) => DetailPage(docId: docId),
+                              ),
                             );
                           },
                           style: ElevatedButton.styleFrom(
@@ -133,7 +150,9 @@ class DetailPage extends StatelessWidget {
               Text('• 장소\n  ${data['location'] ?? '[장소 정보 없음]'}'),
               const SizedBox(height: 8),
               Text(
-                data['capacity'] != null ? '• 모집 인원\n  ${data['capacity']}명' : '• 모집 인원\n  [미정]',
+                data['capacity'] != null
+                    ? '• 모집 인원\n  ${data['capacity']}명'
+                    : '• 모집 인원\n  [미정]',
               ),
               
               const SizedBox(height: 30),
@@ -145,10 +164,12 @@ class DetailPage extends StatelessWidget {
                     style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
                   ),
                   if (friends.isNotEmpty)
-                    ...friends.map<Widget>((name) => Padding(
-                          padding: const EdgeInsets.symmetric(vertical: 4),
-                          child: Text('• $name'),
-                        ))
+                    ...friends.map<Widget>(
+                      (name) => Padding(
+                        padding: const EdgeInsets.symmetric(vertical: 4),
+                        child: Text('• $name'),
+                      ),
+                    )
                   else
                     const Text('참가자 정보가 없습니다.'),
                 ],
@@ -170,7 +191,9 @@ class DetailPage extends StatelessWidget {
                 onSwipe: () async {
                   if (!isParticipant) {
                     await docRef.update({
-                      'invited_friends': FieldValue.arrayUnion([currentUserName])
+                      'invited_friends': FieldValue.arrayUnion([
+                        currentUserName,
+                      ]),
                     });
 
                     Navigator.pushReplacement(
@@ -185,7 +208,10 @@ class DetailPage extends StatelessWidget {
                   child: Text(
                     isParticipant ? '참여 완료' : '참여하기',
                     textAlign: TextAlign.center,
-                    style: const TextStyle(fontSize: 35.0, fontWeight: FontWeight.bold),
+                    style: const TextStyle(
+                      fontSize: 35.0,
+                      fontWeight: FontWeight.bold,
+                    ),
                   ),
                 ),
               ),
@@ -212,7 +238,8 @@ class DetailPage extends StatelessWidget {
             child: Image.network(
               imageUrl,
               fit: BoxFit.cover,
-              errorBuilder: (context, error, stackTrace) => const Icon(Icons.person),
+              errorBuilder:
+                  (context, error, stackTrace) => const Icon(Icons.person),
             ),
           ),
         ),
