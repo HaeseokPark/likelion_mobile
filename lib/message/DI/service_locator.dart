@@ -7,7 +7,7 @@ import 'package:shared_preferences/shared_preferences.dart';
 
 var locator = GetIt.instance;
 
-Future<void> initSerivceLocator() async {
+Future<void> initServiceLocator() async {
   locator.registerSingleton<SharedPreferences>(
       await SharedPreferences.getInstance());
 

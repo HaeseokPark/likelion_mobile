@@ -13,6 +13,7 @@ import 'calendar.dart';
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
   await Firebase.initializeApp(options: DefaultFirebaseOptions.currentPlatform);
+  // await initSerivceLocator();
   runApp(MyApp());
 }
 
