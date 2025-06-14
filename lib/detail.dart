@@ -5,6 +5,7 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter_swipe_button/flutter_swipe_button.dart';
 import 'package:shimmer/shimmer.dart';
 import 'package:firebase_auth/firebase_auth.dart';
+import 'package:intl/intl.dart';
 
 class DetailPage extends StatelessWidget {
   const DetailPage({super.key, required this.docId});
@@ -14,7 +15,7 @@ class DetailPage extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final currentUser = FirebaseAuth.instance.currentUser;
-    final currentUserName = currentUser?.displayName ?? '익명'; // 로그인된 사용자 이름
+    final currentUserName = currentUser?.displayName ?? '익명';
 
     final docRef = FirebaseFirestore.instance.collection('meetings').doc(docId);
 
@@ -42,6 +43,24 @@ class DetailPage extends StatelessWidget {
 
           final bool isParticipant = friends.contains(currentUserName);
 
+          DateTime? meetingStart;
+          try {
+            final baseDate = DateTime.parse(date);
+            final time = DateFormat.jm().parseLoose(startTime);
+            meetingStart = DateTime(
+              baseDate.year,
+              baseDate.month,
+              baseDate.day,
+              time.hour,
+              time.minute,
+            );
+          } catch (e) {
+            meetingStart = null;
+          }
+
+          final bool hasStarted =
+              meetingStart != null && meetingStart.isBefore(DateTime.now());
+
           return ListView(
             padding: const EdgeInsets.all(20),
             children: [
@@ -52,31 +71,26 @@ class DetailPage extends StatelessWidget {
                     width: 150,
                     height: 150,
                     child: ClipRRect(
-                      borderRadius: BorderRadius.circular(20.0), // 둥글기 설정
-                      child:
-                          imageUrl.isNotEmpty && imageUrl.startsWith('http')
-                              ? Image.network(
-                                imageUrl,
-                                fit: BoxFit.cover,
-                                errorBuilder: (context, error, stackTrace) {
-                                  print('Image load error: $error');
-                                  return const Icon(Icons.broken_image);
-                                },
-                                loadingBuilder: (
-                                  context,
-                                  child,
-                                  loadingProgress,
-                                ) {
-                                  if (loadingProgress == null) return child;
-                                  return const Center(
-                                    child: CircularProgressIndicator(),
-                                  );
-                                },
-                              )
-                              : Image.asset(
-                                "assets/images/DOST-logo.png",
-                                fit: BoxFit.cover,
-                              ),
+                      borderRadius: BorderRadius.circular(20.0),
+                      child: imageUrl.isNotEmpty && imageUrl.startsWith('http')
+                          ? Image.network(
+                              imageUrl,
+                              fit: BoxFit.cover,
+                              errorBuilder: (context, error, stackTrace) {
+                                print('Image load error: $error');
+                                return const Icon(Icons.broken_image);
+                              },
+                              loadingBuilder: (context, child, loadingProgress) {
+                                if (loadingProgress == null) return child;
+                                return const Center(
+                                  child: CircularProgressIndicator(),
+                                );
+                              },
+                            )
+                          : Image.asset(
+                              "assets/images/DOST-logo.png",
+                              fit: BoxFit.cover,
+                            ),
                     ),
                   ),
                   const SizedBox(width: 20),
@@ -93,47 +107,44 @@ class DetailPage extends StatelessWidget {
                           ),
                         ),
                         const SizedBox(height: 4),
-                        const Text(
-                          '25/07/11 [19:00-21:00]', // 이 부분 필요시 formatMeetingDate로 변경
-                          style: TextStyle(color: Colors.grey),
+                        Text(
+                          formatMeetingDate(date, startTime, endTime),
+                          style: const TextStyle(color: Colors.grey),
                         ),
                         const SizedBox(height: 10),
-                        ElevatedButton(
-                          onPressed: () async {
-                            if (isParticipant) {
-                              // 떠나기: 리스트에서 제거
-                              await docRef.update({
-                                'invited_friends': FieldValue.arrayRemove([
-                                  currentUserName,
-                                ]),
-                              });
-                            } else {
-                              // 참여하기: 리스트에 추가
-                              await docRef.update({
-                                'invited_friends': FieldValue.arrayUnion([
-                                  currentUserName,
-                                ]),
-                              });
-                            }
-
-                            // 화면 새로고침
-                            Navigator.pushReplacement(
-                              context,
-                              MaterialPageRoute(
-                                builder: (context) => DetailPage(docId: docId),
+                        if (!hasStarted)
+                          ElevatedButton(
+                            onPressed: () async {
+                              if (isParticipant) {
+                                await docRef.update({
+                                  'invited_friends': FieldValue.arrayRemove([
+                                    currentUserName,
+                                  ]),
+                                });
+                              } else {
+                                await docRef.update({
+                                  'invited_friends': FieldValue.arrayUnion([
+                                    currentUserName,
+                                  ]),
+                                });
+                              }
+                              Navigator.pushReplacement(
+                                context,
+                                MaterialPageRoute(
+                                  builder: (context) => DetailPage(docId: docId),
+                                ),
+                              );
+                            },
+                            style: ElevatedButton.styleFrom(
+                              backgroundColor: Colors.blue,
+                              foregroundColor: Colors.white,
+                              textStyle: const TextStyle(color: Colors.white),
+                              shape: RoundedRectangleBorder(
+                                borderRadius: BorderRadius.circular(20),
                               ),
-                            );
-                          },
-                          style: ElevatedButton.styleFrom(
-                            backgroundColor: Colors.blue,
-                            foregroundColor: Colors.white,
-                            textStyle: TextStyle(color: Colors.white),
-                            shape: RoundedRectangleBorder(
-                              borderRadius: BorderRadius.circular(20),
                             ),
+                            child: Text(isParticipant ? '떠나기' : '참여하기'),
                           ),
-                          child: Text(isParticipant ? '떠나기' : '참여하기'),
-                        ),
                       ],
                     ),
                   ),
@@ -154,7 +165,6 @@ class DetailPage extends StatelessWidget {
                     ? '• 모집 인원\n  ${data['capacity']}명'
                     : '• 모집 인원\n  [미정]',
               ),
-              
               const SizedBox(height: 30),
               Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
@@ -175,46 +185,46 @@ class DetailPage extends StatelessWidget {
                 ],
               ),
               const SizedBox(height: 10),
-
-              SwipeButton.expand(
-                width: 300,
-                thumb: const Align(
-                  alignment: Alignment.centerRight,
-                  child: Icon(
-                    IconData(0xe5f2, fontFamily: 'MaterialIcons'),
-                    size: 53,
-                    color: Colors.white,
+              if (!hasStarted)
+                SwipeButton.expand(
+                  width: 300,
+                  thumb: const Align(
+                    alignment: Alignment.centerRight,
+                    child: Icon(
+                      IconData(0xe5f2, fontFamily: 'MaterialIcons'),
+                      size: 53,
+                      color: Colors.white,
+                    ),
                   ),
-                ),
-                activeThumbColor: Colors.blue,
-                activeTrackColor: Colors.blue,
-                onSwipe: () async {
-                  if (!isParticipant) {
-                    await docRef.update({
-                      'invited_friends': FieldValue.arrayUnion([
-                        currentUserName,
-                      ]),
-                    });
-
-                    Navigator.pushReplacement(
-                      context,
-                      MaterialPageRoute(builder: (context) => DetailPage(docId: docId)),
-                    );
-                  }
-                },
-                child: Shimmer.fromColors(
-                  baseColor: Colors.white,
-                  highlightColor: Colors.lightBlue,
-                  child: Text(
-                    isParticipant ? '참여 완료' : '참여하기',
-                    textAlign: TextAlign.center,
-                    style: const TextStyle(
-                      fontSize: 35.0,
-                      fontWeight: FontWeight.bold,
+                  activeThumbColor: Colors.blue,
+                  activeTrackColor: Colors.blue,
+                  onSwipe: () async {
+                    if (!isParticipant) {
+                      await docRef.update({
+                        'invited_friends': FieldValue.arrayUnion([
+                          currentUserName,
+                        ]),
+                      });
+                      Navigator.pushReplacement(
+                        context,
+                        MaterialPageRoute(
+                            builder: (context) => DetailPage(docId: docId)),
+                      );
+                    }
+                  },
+                  child: Shimmer.fromColors(
+                    baseColor: Colors.white,
+                    highlightColor: Colors.lightBlue,
+                    child: Text(
+                      isParticipant ? '떠나기' : '참여하기',
+                      textAlign: TextAlign.center,
+                      style: const TextStyle(
+                        fontSize: 35.0,
+                        fontWeight: FontWeight.bold,
+                      ),
                     ),
                   ),
                 ),
-              ),
             ],
           );
         },
@@ -222,30 +232,4 @@ class DetailPage extends StatelessWidget {
       bottomNavigationBar: const GlobalBottomBar(selectedIndex: 1),
     );
   }
-
-  Widget _participantCard(String name, String imageUrl) {
-    return Column(
-      children: [
-        Container(
-          width: 70,
-          height: 70,
-          decoration: BoxDecoration(
-            color: Colors.grey[300],
-            borderRadius: BorderRadius.circular(15),
-          ),
-          child: ClipRRect(
-            borderRadius: BorderRadius.circular(15),
-            child: Image.network(
-              imageUrl,
-              fit: BoxFit.cover,
-              errorBuilder:
-                  (context, error, stackTrace) => const Icon(Icons.person),
-            ),
-          ),
-        ),
-        const SizedBox(height: 5),
-        Text(name),
-      ],
-    );
-  }
-}
+} 
